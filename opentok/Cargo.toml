@@ -1,0 +1,10 @@
+[package]
+name = "opentok"
+version = "1.0.0"
+description = "Rust bindings for OpenTok SDK"
+authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
+edition = "2018"
+
+[dependencies]
+ffi = { package = "opentok-rs-sys", path = "../../opentok-rs-sys" }
+thiserror = "1.0.24"

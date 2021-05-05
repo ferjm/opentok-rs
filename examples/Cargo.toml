@@ -1,0 +1,11 @@
+[package]
+name = "examples"
+version = "1.0.0"
+authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
+edition = "2018"
+
+[dependencies]
+opentok = { path = "../opentok" }
+
+[[bin]]
+name = "basic_video_chat"
