@@ -7,4 +7,5 @@ edition = "2018"
 
 [dependencies]
 ffi = { package = "opentok-rs-sys", path = "../../opentok-rs-sys" }
+lazy_static = "1.4.0"
 thiserror = "1.0.24"

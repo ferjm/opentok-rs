@@ -1,4 +1,8 @@
+extern crate lazy_static;
+
 mod enums;
+#[macro_use]
+mod macros;
 pub mod session;
 
 use crate::enums::{IntoResult, OtcResult};

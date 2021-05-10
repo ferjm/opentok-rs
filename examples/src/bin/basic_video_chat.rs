@@ -1,5 +1,6 @@
 extern crate opentok;
 
+use opentok::session::{Session, SessionCallbacks};
 use std::env;
 
 fn main() {
@@ -15,7 +16,14 @@ fn main() {
 
     let _ = opentok::init();
 
-    let session = opentok::session::Session::new(api_key, session_id).unwrap();
+    let callbacks = SessionCallbacks::new()
+        .on_connected(|| {
+            println!("on_connected");
+        })
+        .on_disconnected(|| {
+            println!("on_disconnected");
+        });
+    let session = Session::new(api_key, session_id, callbacks.build()).unwrap();
     let _ = session.connect(token);
 
     let _ = opentok::deinit();
