@@ -1,3 +1,4 @@
+use crate::connection::Connection;
 use crate::enums::{IntoResult, OtcError, OtcResult, OtcSessionError};
 
 use lazy_static::lazy_static;
@@ -86,8 +87,8 @@ pub struct SessionCallbacks {
     on_reconnection_started: Option<Box<dyn Fn()>>,
     on_reconnected: Option<Box<dyn Fn()>>,
     on_disconnected: Option<Box<dyn Fn()>>,
-    on_connection_created: Option<Box<dyn Fn(*const ffi::otc_connection)>>,
-    on_connection_dropped: Option<Box<dyn Fn(*const ffi::otc_connection)>>,
+    on_connection_created: Option<Box<dyn Fn(Connection)>>,
+    on_connection_dropped: Option<Box<dyn Fn(Connection)>>,
     on_stream_received: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
     on_stream_dropped: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
     on_stream_has_audio_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
@@ -96,7 +97,7 @@ pub struct SessionCallbacks {
     on_stream_video_type_changed:
         Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_stream_video_type)>>,
     on_signal_received:
-        Option<Box<dyn Fn(*const c_char, *const c_char, *const ffi::otc_connection)>>,
+        Option<Box<dyn Fn(*const c_char, *const c_char, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(*const c_char, *const c_char)>>,
     on_archive_stopped: Option<Box<dyn Fn(*const c_char)>>,
     on_error: Option<Box<dyn Fn(*const c_char, OtcSessionError)>>,
@@ -131,12 +132,12 @@ impl SessionCallbacks {
     callback!(
         on_connection_created,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback!(
         on_connection_dropped,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback!(on_stream_received, stream, *const ffi::otc_stream);
     callback!(on_stream_dropped, stream, *const ffi::otc_stream);
@@ -177,7 +178,7 @@ impl SessionCallbacks {
         signal,
         *const c_char,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback!(
         on_archive_started,
@@ -201,8 +202,8 @@ pub struct SessionCallbacksBuilder {
     on_reconnection_started: Option<Box<dyn Fn()>>,
     on_reconnected: Option<Box<dyn Fn()>>,
     on_disconnected: Option<Box<dyn Fn()>>,
-    on_connection_created: Option<Box<dyn Fn(*const ffi::otc_connection)>>,
-    on_connection_dropped: Option<Box<dyn Fn(*const ffi::otc_connection)>>,
+    on_connection_created: Option<Box<dyn Fn(Connection)>>,
+    on_connection_dropped: Option<Box<dyn Fn(Connection)>>,
     on_stream_received: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
     on_stream_dropped: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
     on_stream_has_audio_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
@@ -211,7 +212,7 @@ pub struct SessionCallbacksBuilder {
     on_stream_video_type_changed:
         Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_stream_video_type)>>,
     on_signal_received:
-        Option<Box<dyn Fn(*const c_char, *const c_char, *const ffi::otc_connection)>>,
+        Option<Box<dyn Fn(*const c_char, *const c_char, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(*const c_char, *const c_char)>>,
     on_archive_stopped: Option<Box<dyn Fn(*const c_char)>>,
     on_error: Option<Box<dyn Fn(*const c_char, OtcSessionError)>>,
@@ -222,8 +223,8 @@ impl SessionCallbacksBuilder {
     callback_setter!(on_reconnection_started);
     callback_setter!(on_reconnected);
     callback_setter!(on_disconnected);
-    callback_setter!(on_connection_created, *const ffi::otc_connection);
-    callback_setter!(on_connection_dropped, *const ffi::otc_connection);
+    callback_setter!(on_connection_created, Connection);
+    callback_setter!(on_connection_dropped, Connection);
     callback_setter!(on_stream_received, *const ffi::otc_stream);
     callback_setter!(on_stream_dropped, *const ffi::otc_stream);
     callback_setter!(
@@ -251,7 +252,7 @@ impl SessionCallbacksBuilder {
         on_signal_received,
         *const c_char,
         *const c_char,
-        *const ffi::otc_connection
+        Connection
     );
     callback_setter!(on_archive_started, *const c_char, *const c_char);
     callback_setter!(on_archive_stopped, *const c_char);
@@ -370,12 +371,12 @@ impl Session {
     callback_call!(
         on_connection_created,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback_call!(
         on_connection_dropped,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback_call!(on_stream_received, stream, *const ffi::otc_stream);
     callback_call!(on_stream_dropped, stream, *const ffi::otc_stream);
@@ -416,7 +417,7 @@ impl Session {
         signal,
         *const c_char,
         connection,
-        *const ffi::otc_connection
+        Connection
     );
     callback_call!(
         on_archive_started,

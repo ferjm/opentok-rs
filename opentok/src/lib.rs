@@ -1,5 +1,6 @@
 extern crate lazy_static;
 
+pub mod connection;
 mod enums;
 #[macro_use]
 mod macros;
