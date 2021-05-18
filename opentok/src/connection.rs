@@ -26,8 +26,14 @@ impl Connection {
     }
 }
 
+impl Drop for Connection {
+    fn drop(&mut self) {
+        unsafe { ffi::otc_connection_delete(self.connection_ptr as *mut ffi::otc_connection) };
+    }
+}
+
 impl From<*const ffi::otc_connection> for Connection {
-    fn from(ptr: *const ffi::otc_connection) -> Connection {
-        Connection { connection_ptr: ptr }
+    fn from(connection_ptr: *const ffi::otc_connection) -> Connection {
+        Connection { connection_ptr }
     }
 }
