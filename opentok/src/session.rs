@@ -1,5 +1,6 @@
 use crate::connection::Connection;
 use crate::enums::{IntoResult, OtcError, OtcResult};
+use crate::stream::{Stream, StreamVideoType};
 
 use lazy_static::lazy_static;
 use std::collections::HashMap;
@@ -206,13 +207,12 @@ pub struct SessionCallbacks {
     on_disconnected: Option<Box<dyn Fn()>>,
     on_connection_created: Option<Box<dyn Fn(Connection)>>,
     on_connection_dropped: Option<Box<dyn Fn(Connection)>>,
-    on_stream_received: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
-    on_stream_dropped: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
-    on_stream_video_dimensions_changed: Option<Box<dyn Fn(*const ffi::otc_stream, i32, i32)>>,
-    on_stream_video_type_changed:
-        Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_stream_video_type)>>,
+    on_stream_received: Option<Box<dyn Fn(Stream)>>,
+    on_stream_dropped: Option<Box<dyn Fn(Stream)>>,
+    on_stream_has_audio_changed: Option<Box<dyn Fn(Stream, ffi::otc_bool)>>,
+    on_stream_has_video_changed: Option<Box<dyn Fn(Stream, ffi::otc_bool)>>,
+    on_stream_video_dimensions_changed: Option<Box<dyn Fn(Stream, i32, i32)>>,
+    on_stream_video_type_changed: Option<Box<dyn Fn(Stream, StreamVideoType)>>,
     on_signal_received: Option<Box<dyn Fn(*const c_char, *const c_char, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(*const c_char, *const c_char)>>,
     on_archive_stopped: Option<Box<dyn Fn(*const c_char)>>,
@@ -247,26 +247,26 @@ impl SessionCallbacks {
     callback!(on_disconnected);
     callback!(on_connection_created, connection, Connection);
     callback!(on_connection_dropped, connection, Connection);
-    callback!(on_stream_received, stream, *const ffi::otc_stream);
-    callback!(on_stream_dropped, stream, *const ffi::otc_stream);
+    callback!(on_stream_received, stream, Stream);
+    callback!(on_stream_dropped, stream, Stream);
     callback!(
         on_stream_has_audio_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         has_audio,
         ffi::otc_bool
     );
     callback!(
         on_stream_has_video_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         has_video,
         ffi::otc_bool
     );
     callback!(
         on_stream_video_dimensions_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         width,
         i32,
         height,
@@ -275,9 +275,9 @@ impl SessionCallbacks {
     callback!(
         on_stream_video_type_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         type_,
-        ffi::otc_stream_video_type
+        StreamVideoType
     );
     callback!(
         on_signal_received,
@@ -312,13 +312,12 @@ pub struct SessionCallbacksBuilder {
     on_disconnected: Option<Box<dyn Fn()>>,
     on_connection_created: Option<Box<dyn Fn(Connection)>>,
     on_connection_dropped: Option<Box<dyn Fn(Connection)>>,
-    on_stream_received: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
-    on_stream_dropped: Option<Box<dyn Fn(*const ffi::otc_stream)>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_bool)>>,
-    on_stream_video_dimensions_changed: Option<Box<dyn Fn(*const ffi::otc_stream, i32, i32)>>,
-    on_stream_video_type_changed:
-        Option<Box<dyn Fn(*const ffi::otc_stream, ffi::otc_stream_video_type)>>,
+    on_stream_received: Option<Box<dyn Fn(Stream)>>,
+    on_stream_dropped: Option<Box<dyn Fn(Stream)>>,
+    on_stream_has_audio_changed: Option<Box<dyn Fn(Stream, ffi::otc_bool)>>,
+    on_stream_has_video_changed: Option<Box<dyn Fn(Stream, ffi::otc_bool)>>,
+    on_stream_video_dimensions_changed: Option<Box<dyn Fn(Stream, i32, i32)>>,
+    on_stream_video_type_changed: Option<Box<dyn Fn(Stream, StreamVideoType)>>,
     on_signal_received: Option<Box<dyn Fn(*const c_char, *const c_char, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(*const c_char, *const c_char)>>,
     on_archive_stopped: Option<Box<dyn Fn(*const c_char)>>,
@@ -332,29 +331,12 @@ impl SessionCallbacksBuilder {
     callback_setter!(on_disconnected);
     callback_setter!(on_connection_created, Connection);
     callback_setter!(on_connection_dropped, Connection);
-    callback_setter!(on_stream_received, *const ffi::otc_stream);
-    callback_setter!(on_stream_dropped, *const ffi::otc_stream);
-    callback_setter!(
-        on_stream_has_audio_changed,
-        *const ffi::otc_stream,
-        ffi::otc_bool
-    );
-    callback_setter!(
-        on_stream_has_video_changed,
-        *const ffi::otc_stream,
-        ffi::otc_bool
-    );
-    callback_setter!(
-        on_stream_video_dimensions_changed,
-        *const ffi::otc_stream,
-        i32,
-        i32
-    );
-    callback_setter!(
-        on_stream_video_type_changed,
-        *const ffi::otc_stream,
-        ffi::otc_stream_video_type
-    );
+    callback_setter!(on_stream_received, Stream);
+    callback_setter!(on_stream_dropped, Stream);
+    callback_setter!(on_stream_has_audio_changed, Stream, ffi::otc_bool);
+    callback_setter!(on_stream_has_video_changed, Stream, ffi::otc_bool);
+    callback_setter!(on_stream_video_dimensions_changed, Stream, i32, i32);
+    callback_setter!(on_stream_video_type_changed, Stream, StreamVideoType);
     callback_setter!(on_signal_received, *const c_char, *const c_char, Connection);
     callback_setter!(on_archive_started, *const c_char, *const c_char);
     callback_setter!(on_archive_stopped, *const c_char);
@@ -472,26 +454,26 @@ impl Session {
     callback_call!(on_disconnected);
     callback_call!(on_connection_created, connection, Connection);
     callback_call!(on_connection_dropped, connection, Connection);
-    callback_call!(on_stream_received, stream, *const ffi::otc_stream);
-    callback_call!(on_stream_dropped, stream, *const ffi::otc_stream);
+    callback_call!(on_stream_received, stream, Stream);
+    callback_call!(on_stream_dropped, stream, Stream);
     callback_call!(
         on_stream_has_audio_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         has_audio,
         ffi::otc_bool
     );
     callback_call!(
         on_stream_has_video_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         has_video,
         ffi::otc_bool
     );
     callback_call!(
         on_stream_video_dimensions_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         width,
         i32,
         height,
@@ -500,9 +482,9 @@ impl Session {
     callback_call!(
         on_stream_video_type_changed,
         stream,
-        *const ffi::otc_stream,
+        Stream,
         type_,
-        ffi::otc_stream_video_type
+        StreamVideoType
     );
     callback_call!(
         on_signal_received,

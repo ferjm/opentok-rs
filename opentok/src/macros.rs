@@ -144,3 +144,13 @@ macro_rules! callback_call {
         }
     };
 }
+
+macro_rules! string_getter {
+    ($(#[$attr:meta])* => ($method:ident, $ffi:ident)) => {
+        pub fn $method(&self) -> String {
+            let property = unsafe { ffi::$ffi(self.ptr) };
+            let property: &CStr = unsafe { CStr::from_ptr(property) };
+            property.to_str().unwrap().to_owned()
+        }
+    };
+}

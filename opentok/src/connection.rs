@@ -1,39 +1,35 @@
 use std::ffi::CStr;
 
 pub struct Connection {
-    connection_ptr: *const ffi::otc_connection,
+    ptr: *const ffi::otc_connection,
 }
 
 impl Connection {
-    /// Returns the unique identifier for this connection.
-    pub fn get_id(&self) -> String {
-        let id = unsafe { ffi::otc_connection_get_id(self.connection_ptr) };
-        let id: &CStr = unsafe { CStr::from_ptr(id) };
-        id.to_str().unwrap().to_owned()
-    }
+    string_getter!(
+        /// Returns the unique identifier for this connection.
+        => (get_id, otc_connection_get_id)
+    );
+
+    string_getter!(
+        /// Returns the session ID associated with this connection.
+        => (get_session_id, otc_connection_get_session_id)
+    );
 
     /// Returns the timestamp corresponding with the creation of the OpenTok
     /// session.
     pub fn get_creation_time(&self) -> i64 {
-        unsafe { ffi::otc_connection_get_creation_time(self.connection_ptr) }
-    }
-
-    /// Returns the session ID associated with this connection.
-    pub fn get_session_id(&self) -> String {
-        let id = unsafe { ffi::otc_connection_get_session_id(self.connection_ptr) };
-        let id: &CStr = unsafe { CStr::from_ptr(id) };
-        id.to_str().unwrap().to_owned()
+        unsafe { ffi::otc_connection_get_creation_time(self.ptr) }
     }
 }
 
 impl Drop for Connection {
     fn drop(&mut self) {
-        unsafe { ffi::otc_connection_delete(self.connection_ptr as *mut ffi::otc_connection) };
+        unsafe { ffi::otc_connection_delete(self.ptr as *mut ffi::otc_connection) };
     }
 }
 
 impl From<*const ffi::otc_connection> for Connection {
-    fn from(connection_ptr: *const ffi::otc_connection) -> Connection {
-        Connection { connection_ptr }
+    fn from(ptr: *const ffi::otc_connection) -> Connection {
+        Connection { ptr }
     }
 }
