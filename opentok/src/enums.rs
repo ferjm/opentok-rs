@@ -120,3 +120,14 @@ impl IntoResult for ffi::otc_status {
         }
     }
 }
+
+pub struct OtcBool(pub ffi::otc_bool);
+
+impl OtcBool {
+    pub fn into_bool(&self) -> bool {
+        match self.0 {
+            0 => false,
+            _ => true,
+        }
+    }
+}
