@@ -459,12 +459,12 @@ impl Session {
 
     pub fn on_stream_has_audio_changed(&self, stream: Stream, has_audio: ffi::otc_bool) {
         self.callbacks
-            .on_stream_has_audio_changed(stream, OtcBool(has_audio).into_bool())
+            .on_stream_has_audio_changed(stream, *OtcBool(has_audio))
     }
 
     pub fn on_stream_has_video_changed(&self, stream: Stream, has_video: ffi::otc_bool) {
         self.callbacks
-            .on_stream_has_video_changed(stream, OtcBool(has_video).into_bool())
+            .on_stream_has_video_changed(stream, *OtcBool(has_video))
     }
 
     callback_call!(

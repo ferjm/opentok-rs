@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use thiserror::Error;
 
 /// Log level enumeration.
@@ -123,11 +124,13 @@ impl IntoResult for ffi::otc_status {
 
 pub struct OtcBool(pub ffi::otc_bool);
 
-impl OtcBool {
-    pub fn into_bool(&self) -> bool {
+impl Deref for OtcBool {
+    type Target = bool;
+
+    fn deref(&self) -> &bool {
         match self.0 {
-            0 => false,
-            _ => true,
+            0 => &false,
+            _ => &true,
         }
     }
 }
