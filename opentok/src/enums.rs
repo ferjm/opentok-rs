@@ -49,6 +49,7 @@ impl From<ffi::otc_log_level> for OtcLogLevel {
 /// OpenTok error status codes.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Error)]
 #[must_use]
+#[allow(clippy::manual_non_exhaustive)]
 pub enum OtcError {
     /// An argument used in a function call is not valid
     #[error("An argument used in a function call is not valid")]
@@ -94,12 +95,12 @@ pub enum OtcError {
 pub type OtcResult = Result<(), OtcError>;
 
 pub trait IntoResult {
-    fn into_result(&self) -> Result<(), OtcError>;
+    fn into_result(self) -> Result<(), OtcError>;
 }
 
 impl IntoResult for ffi::otc_status {
-    fn into_result(&self) -> Result<(), OtcError> {
-        match *self as u32 {
+    fn into_result(self) -> Result<(), OtcError> {
+        match self as u32 {
             ffi::otc_constant_OTC_SUCCESS => Ok(()),
             ffi::otc_error_code_OTC_INVALID_PARAM => Err(OtcError::InvalidParam),
             ffi::otc_error_code_OTC_FATAL => Err(OtcError::Fatal),

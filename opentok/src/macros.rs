@@ -10,7 +10,7 @@ macro_rules! ffi_callback {
         }
     };
     ($fn_name:ident, $arg1:ident, $ty1:ty) => {
-        extern "C" fn $fn_name(
+        unsafe extern "C" fn $fn_name(
             session: *mut ffi::otc_session,
             _user_data: *mut c_void,
             $arg1: $ty1,
@@ -24,7 +24,7 @@ macro_rules! ffi_callback {
         }
     };
     ($fn_name:ident, $arg1:ident, $ty1:ty, $arg2:ident, $ty2:ty) => {
-        extern "C" fn $fn_name(
+        unsafe extern "C" fn $fn_name(
             session: *mut ffi::otc_session,
             _user_data: *mut c_void,
             $arg1: $ty1,
@@ -39,7 +39,7 @@ macro_rules! ffi_callback {
         }
     };
     ($fn_name:ident, $arg1:ident, $ty1:ty, $arg2:ident, $ty2:ty, $arg3:ident, $ty3:ty) => {
-        extern "C" fn $fn_name(
+        unsafe extern "C" fn $fn_name(
             session: *mut ffi::otc_session,
             _user_data: *mut c_void,
             $arg1: $ty1,

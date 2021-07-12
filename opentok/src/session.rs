@@ -201,6 +201,7 @@ ffi_callback!(
     ffi::otc_session_error_code
 );
 
+#[allow(clippy::type_complexity)]
 pub struct SessionCallbacks {
     on_connected: Option<Box<dyn Fn()>>,
     on_reconnection_started: Option<Box<dyn Fn()>>,
@@ -221,7 +222,7 @@ pub struct SessionCallbacks {
 }
 
 impl SessionCallbacks {
-    pub fn new() -> SessionCallbacksBuilder {
+    pub fn builder() -> SessionCallbacksBuilder {
         SessionCallbacksBuilder {
             on_connected: None,
             on_reconnection_started: None,
@@ -305,6 +306,7 @@ impl SessionCallbacks {
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub struct SessionCallbacksBuilder {
     on_connected: Option<Box<dyn Fn()>>,
     on_reconnection_started: Option<Box<dyn Fn()>>,
@@ -484,7 +486,7 @@ impl Session {
         StreamVideoType
     );
 
-    pub fn on_signal_received(
+    fn on_signal_received(
         &self,
         type_: *const c_char,
         signal: *const c_char,
@@ -499,7 +501,7 @@ impl Session {
         );
     }
 
-    pub fn on_archive_started(&self, archive_id: *const c_char, name: *const c_char) {
+    fn on_archive_started(&self, archive_id: *const c_char, name: *const c_char) {
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         let name = unsafe { CStr::from_ptr(name) };
         self.callbacks.on_archive_started(
@@ -508,13 +510,13 @@ impl Session {
         );
     }
 
-    pub fn on_archive_stopped(&self, archive_id: *const c_char) {
+    fn on_archive_stopped(&self, archive_id: *const c_char) {
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         self.callbacks
             .on_archive_stopped(archive_id.to_str().unwrap_or(""));
     }
 
-    pub fn on_error(&self, error_string: *const c_char, error: OtcSessionError) {
+    fn on_error(&self, error_string: *const c_char, error: OtcSessionError) {
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks
             .on_error(error_string.to_str().unwrap_or(""), error);

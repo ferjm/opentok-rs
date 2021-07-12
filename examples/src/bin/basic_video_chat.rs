@@ -16,7 +16,7 @@ fn main() {
 
     let _ = opentok::init();
 
-    let callbacks = SessionCallbacks::new()
+    let callbacks = SessionCallbacks::builder()
         .on_connected(|| {
             println!("on_connected");
         })
