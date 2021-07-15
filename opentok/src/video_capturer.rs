@@ -43,25 +43,25 @@ unsafe extern "C" fn init(
     result.0
 }
 
-ffi_callback_proxy_with_return!(
+ffi_callback_with_return!(
     destroy,
     *const ffi::otc_video_capturer,
     VideoCapturer,
     ffi::otc_bool
 );
-ffi_callback_proxy_with_return!(
+ffi_callback_with_return!(
     start,
     *const ffi::otc_video_capturer,
     VideoCapturer,
     ffi::otc_bool
 );
-ffi_callback_proxy_with_return!(
+ffi_callback_with_return!(
     stop,
     *const ffi::otc_video_capturer,
     VideoCapturer,
     ffi::otc_bool
 );
-ffi_callback_proxy_with_return!(
+ffi_callback_with_return!(
     get_capture_settings,
     *const ffi::otc_video_capturer,
     VideoCapturer,

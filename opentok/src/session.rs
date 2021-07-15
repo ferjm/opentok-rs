@@ -3,17 +3,11 @@ use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::publisher::Publisher;
 use crate::stream::{Stream, StreamVideoType};
 
-use lazy_static::lazy_static;
-use std::collections::HashMap;
+use once_cell::sync::OnceCell;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
-use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
-
-lazy_static! {
-    static ref SESSIONS: Arc<Mutex<HashMap<usize, Session>>> = Arc::new(Mutex::new(HashMap::new()));
-}
 
 /// Errors associated with an OpenTok session.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Error)]
@@ -131,74 +125,89 @@ impl From<ffi::otc_session_error_code> for OtcSessionError {
     }
 }
 
-ffi_callback!(on_connected);
-ffi_callback!(on_reconnection_started);
-ffi_callback!(on_reconnected);
-ffi_callback!(on_disconnected);
+ffi_callback!(on_connected, *mut ffi::otc_session, Session);
+ffi_callback!(on_reconnection_started, *mut ffi::otc_session, Session);
+ffi_callback!(on_reconnected, *mut ffi::otc_session, Session);
+ffi_callback!(on_disconnected, *mut ffi::otc_session, Session);
 ffi_callback!(
     on_connection_created,
-    connection,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_connection
 );
 ffi_callback!(
     on_connection_dropped,
-    connection,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_connection
 );
-ffi_callback!(on_stream_received, stream, *const ffi::otc_stream);
-ffi_callback!(on_stream_dropped, stream, *const ffi::otc_stream);
+ffi_callback!(
+    on_stream_received,
+    *mut ffi::otc_session,
+    Session,
+    *const ffi::otc_stream
+);
+ffi_callback!(
+    on_stream_dropped,
+    *mut ffi::otc_session,
+    Session,
+    *const ffi::otc_stream
+);
 ffi_callback!(
     on_stream_has_audio_changed,
-    stream,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_stream,
-    has_audio,
     ffi::otc_bool
 );
 ffi_callback!(
     on_stream_has_video_changed,
-    stream,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_stream,
-    has_video,
     ffi::otc_bool
 );
 ffi_callback!(
     on_stream_video_dimensions_changed,
-    stream,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_stream,
-    width,
     i32,
-    height,
     i32
 );
 ffi_callback!(
     on_stream_video_type_changed,
-    stream,
+    *mut ffi::otc_session,
+    Session,
     *const ffi::otc_stream,
-    type_,
     ffi::otc_stream_video_type
 );
 ffi_callback!(
     on_signal_received,
-    type_,
+    *mut ffi::otc_session,
+    Session,
     *const c_char,
-    signal,
     *const c_char,
-    connection,
     *const ffi::otc_connection
 );
 ffi_callback!(
     on_archive_started,
-    archive_id,
+    *mut ffi::otc_session,
+    Session,
     *const c_char,
-    name,
     *const c_char
 );
-ffi_callback!(on_archive_stopped, archive_id, *const c_char);
+ffi_callback!(
+    on_archive_stopped,
+    *mut ffi::otc_session,
+    Session,
+    *const c_char
+);
 ffi_callback!(
     on_error,
-    error_string,
+    *mut ffi::otc_session,
+    Session,
     *const c_char,
-    error,
     ffi::otc_session_error_code
 );
 
@@ -369,12 +378,10 @@ impl SessionCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Session {
-    session_ptr: *mut ffi::otc_session,
-    callbacks: Rc<SessionCallbacks>,
+    ptr: OnceCell<*const ffi::otc_session>,
+    callbacks: Arc<Mutex<SessionCallbacks>>,
+    ffi_callbacks: OnceCell<ffi::otc_session_callbacks>,
 }
-
-unsafe impl Sync for Session {}
-unsafe impl Send for Session {}
 
 impl Session {
     /// Creates a new OpenTok session.
@@ -388,14 +395,13 @@ impl Session {
         session_id: &str,
         callbacks: SessionCallbacks,
     ) -> Result<Session, OtcError> {
-        let api_key = CString::new(api_key).map_err(|_| OtcError::InvalidParam("api_key"))?;
-        let session_id =
-            CString::new(session_id).map_err(|_| OtcError::InvalidParam("session_id"))?;
-        // In order to get the C layer to call Rust callbacks targeting the Session object,
-        // we would need to pass down the pointer to the Rust object. Unfortunately, we cannot
-        // modify the C layer to make it get and use this pointer, so we need to make it call
-        // top level functions instead and use a static map (SESSIONS) with a match between
-        // the C++ session pointer and the Rust session object.
+        let mut session = Session {
+            ptr: Default::default(),
+            callbacks: Arc::new(Mutex::new(callbacks)),
+            ffi_callbacks: Default::default(),
+        };
+
+        let session_ptr: *mut c_void = &mut session as *mut _ as *mut c_void;
         let ffi_callbacks = ffi::otc_session_callbacks {
             on_connected: Some(on_connected),
             on_reconnection_started: Some(on_reconnection_started),
@@ -413,22 +419,25 @@ impl Session {
             on_archive_started: Some(on_archive_started),
             on_archive_stopped: Some(on_archive_stopped),
             on_error: Some(on_error),
-            user_data: std::ptr::null_mut(),
+            user_data: session_ptr,
             reserved: std::ptr::null_mut(),
         };
+
+        let api_key = CString::new(api_key).map_err(|_| OtcError::InvalidParam("api_key"))?;
+        let session_id =
+            CString::new(session_id).map_err(|_| OtcError::InvalidParam("session_id"))?;
         let session_ptr =
             unsafe { ffi::otc_session_new(api_key.as_ptr(), session_id.as_ptr(), &ffi_callbacks) };
         if session_ptr.is_null() {
             return Err(OtcError::Fatal);
         }
-        let session = Session {
-            session_ptr,
-            callbacks: Rc::new(callbacks),
-        };
-        SESSIONS
-            .lock()
-            .unwrap()
-            .insert(session_ptr as usize, session.clone());
+
+        session.ptr.set(session_ptr).map_err(|_| OtcError::Fatal)?;
+        session
+            .ffi_callbacks
+            .set(ffi_callbacks)
+            .map_err(|_| OtcError::Fatal)?;
+
         Ok(session)
     }
 
@@ -438,99 +447,114 @@ impl Session {
     /// https://tokbox.com/developer/guides/create-token/
     pub fn connect(&self, token: &str) -> OtcResult {
         let token = std::ffi::CString::new(token).map_err(|_| OtcError::InvalidParam("token"))?;
-        unsafe { ffi::otc_session_connect(self.session_ptr, token.as_ptr()) }.into_result()
+        unsafe { ffi::otc_session_connect(*self.ptr.get().unwrap() as *mut _, token.as_ptr()) }
+            .into_result()
     }
 
     /// Disconnects the client from this session. All of the client's subscribers
     /// and publishers will also be will be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
-        unsafe { ffi::otc_session_disconnect(self.session_ptr) }.into_result()
+        unsafe { ffi::otc_session_disconnect(*self.ptr.get().unwrap() as *mut _) }.into_result()
     }
 
     /// Releases resources associated with the session.
     pub fn delete(&self) -> OtcResult {
-        unsafe { ffi::otc_session_delete(self.session_ptr) }.into_result()
+        unsafe { ffi::otc_session_delete(*self.ptr.get().unwrap() as *mut _) }.into_result()
     }
 
     pub fn publish(&self, publisher: Publisher) -> OtcResult {
-        unsafe { ffi::otc_session_publish(self.session_ptr, *publisher as *mut _) }.into_result()
+        unsafe {
+            ffi::otc_session_publish(*self.ptr.get().unwrap() as *mut _, *publisher as *mut _)
+        }
+        .into_result()
     }
 
     callback_call!(on_connected);
     callback_call!(on_reconnection_started);
     callback_call!(on_reconnected);
     callback_call!(on_disconnected);
-    callback_call!(on_connection_created, connection, Connection);
-    callback_call!(on_connection_dropped, connection, Connection);
-    callback_call!(on_stream_received, stream, Stream);
-    callback_call!(on_stream_dropped, stream, Stream);
+    callback_call!(on_connection_created, *const ffi::otc_connection);
+    callback_call!(on_connection_dropped, *const ffi::otc_connection);
+    callback_call!(on_stream_received, *const ffi::otc_stream);
+    callback_call!(on_stream_dropped, *const ffi::otc_stream);
 
-    pub fn on_stream_has_audio_changed(&self, stream: Stream, has_audio: ffi::otc_bool) {
+    pub fn on_stream_has_audio_changed(
+        &self,
+        stream: *const ffi::otc_stream,
+        has_audio: ffi::otc_bool,
+    ) {
         self.callbacks
-            .on_stream_has_audio_changed(stream, *OtcBool(has_audio))
+            .lock()
+            .unwrap()
+            .on_stream_has_audio_changed(stream.into(), *OtcBool(has_audio))
     }
 
-    pub fn on_stream_has_video_changed(&self, stream: Stream, has_video: ffi::otc_bool) {
+    pub fn on_stream_has_video_changed(
+        &self,
+        stream: *const ffi::otc_stream,
+        has_video: ffi::otc_bool,
+    ) {
         self.callbacks
-            .on_stream_has_video_changed(stream, *OtcBool(has_video))
+            .lock()
+            .unwrap()
+            .on_stream_has_video_changed(stream.into(), *OtcBool(has_video))
     }
 
     callback_call!(
         on_stream_video_dimensions_changed,
-        stream,
-        Stream,
-        width,
+        *const ffi::otc_stream,
         i32,
-        height,
         i32
     );
     callback_call!(
         on_stream_video_type_changed,
-        stream,
-        Stream,
-        type_,
-        StreamVideoType
+        *const ffi::otc_stream,
+        ffi::otc_stream_video_type
     );
 
     fn on_signal_received(
         &self,
         type_: *const c_char,
         signal: *const c_char,
-        connection: Connection,
+        connection: *const ffi::otc_connection,
     ) {
         let type_ = unsafe { CStr::from_ptr(type_) };
         let signal = unsafe { CStr::from_ptr(signal) };
-        self.callbacks.on_signal_received(
-            type_.to_str().unwrap_or(""),
-            signal.to_str().unwrap_or(""),
-            connection,
+        self.callbacks.lock().unwrap().on_signal_received(
+            type_.to_str().unwrap_or_default(),
+            signal.to_str().unwrap_or_default(),
+            connection.into(),
         );
     }
 
     fn on_archive_started(&self, archive_id: *const c_char, name: *const c_char) {
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         let name = unsafe { CStr::from_ptr(name) };
-        self.callbacks.on_archive_started(
-            archive_id.to_str().unwrap_or(""),
-            name.to_str().unwrap_or(""),
+        self.callbacks.lock().unwrap().on_archive_started(
+            archive_id.to_str().unwrap_or_default(),
+            name.to_str().unwrap_or_default(),
         );
     }
 
     fn on_archive_stopped(&self, archive_id: *const c_char) {
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         self.callbacks
-            .on_archive_stopped(archive_id.to_str().unwrap_or(""));
+            .lock()
+            .unwrap()
+            .on_archive_stopped(archive_id.to_str().unwrap_or_default());
     }
 
-    fn on_error(&self, error_string: *const c_char, error: OtcSessionError) {
+    fn on_error(&self, error_string: *const c_char, error: ffi::otc_session_error_code) {
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks
-            .on_error(error_string.to_str().unwrap_or(""), error);
+            .lock()
+            .unwrap()
+            .on_error(error_string.to_str().unwrap_or_default(), error.into());
     }
 }
 
 impl Drop for Session {
     fn drop(&mut self) {
-        unsafe { ffi::otc_session_delete(self.session_ptr) };
+        unsafe { ffi::otc_session_delete(*self.ptr.get().unwrap() as *mut _) };
     }
 }

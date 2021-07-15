@@ -107,7 +107,7 @@ impl VideoFrame {
         }
     }
 
-   fn new_mjpeg(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
+    fn new_mjpeg(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
         Self {
             ptr: unsafe {
                 ffi::otc_video_frame_new_MJPEG(

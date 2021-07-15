@@ -77,35 +77,35 @@ enum PublisherStats {
     Video(MediaStats),
 }
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_stream_created,
     *mut ffi::otc_publisher,
     Publisher,
     *const ffi::otc_stream
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_stream_destroyed,
     *mut ffi::otc_publisher,
     Publisher,
     *const ffi::otc_stream
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_render_frame,
     *mut ffi::otc_publisher,
     Publisher,
     *const ffi::otc_video_frame
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_audio_level_updated,
     *mut ffi::otc_publisher,
     Publisher,
     f32
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_audio_stats,
     *mut ffi::otc_publisher,
     Publisher,
@@ -113,7 +113,7 @@ ffi_callback_proxy!(
     ffi::size_t
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_video_stats,
     *mut ffi::otc_publisher,
     Publisher,
@@ -121,7 +121,7 @@ ffi_callback_proxy!(
     ffi::size_t
 );
 
-ffi_callback_proxy!(
+ffi_callback!(
     on_error,
     *mut ffi::otc_publisher,
     Publisher,
