@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate lazy_static;
 
 #[macro_use]
@@ -6,8 +8,11 @@ mod macros;
 #[macro_use]
 pub mod connection;
 mod enums;
+pub mod publisher;
 pub mod session;
 pub mod stream;
+mod video_capturer;
+mod video_frame;
 
 use crate::enums::{IntoResult, OtcResult};
 

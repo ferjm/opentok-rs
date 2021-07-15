@@ -52,8 +52,8 @@ impl From<ffi::otc_log_level> for OtcLogLevel {
 #[allow(clippy::manual_non_exhaustive)]
 pub enum OtcError {
     /// An argument used in a function call is not valid
-    #[error("An argument used in a function call is not valid")]
-    InvalidParam,
+    #[error("The argument {0} used in a function call is not valid")]
+    InvalidParam(&'static str),
     /// Generic error
     #[error("Generic error")]
     Fatal,
@@ -102,7 +102,7 @@ impl IntoResult for ffi::otc_status {
     fn into_result(self) -> Result<(), OtcError> {
         match self as u32 {
             ffi::otc_constant_OTC_SUCCESS => Ok(()),
-            ffi::otc_error_code_OTC_INVALID_PARAM => Err(OtcError::InvalidParam),
+            ffi::otc_error_code_OTC_INVALID_PARAM => Err(OtcError::InvalidParam("")),
             ffi::otc_error_code_OTC_FATAL => Err(OtcError::Fatal),
             ffi::otc_error_code_OTC_CONNECTION_DROPPED => Err(OtcError::ConnectionDropped),
             ffi::otc_error_code_OTC_CONNECTION_TIMED_OUT => Err(OtcError::TimedOut),
@@ -132,6 +132,15 @@ impl Deref for OtcBool {
         match self.0 {
             0 => &false,
             _ => &true,
+        }
+    }
+}
+
+impl From<OtcResult> for OtcBool {
+    fn from(result: OtcResult) -> OtcBool {
+        match result {
+            Ok(_) => OtcBool(1),
+            Err(_) => OtcBool(0),
         }
     }
 }

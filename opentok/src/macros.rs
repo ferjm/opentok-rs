@@ -1,3 +1,50 @@
+macro_rules! ffi_callback_proxy {
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty) => {
+        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void) {
+            let target = data as *mut $target_rust_type;
+            let _ = (*target).$fn_name();
+        }
+    };
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty) => {
+        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void, arg1: $arg1_type) {
+            let target = data as *mut $target_rust_type;
+            let _ = (*target).$fn_name(arg1);
+        }
+    };
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty, $arg2_type:ty) => {
+        unsafe extern "C" fn $fn_name(
+            _: $target_type,
+            data: *mut c_void,
+            arg1: $arg1_type,
+            arg2: $arg2_type,
+        ) {
+            let target = data as *mut $target_rust_type;
+            let _ = (*target).$fn_name(arg1, arg2);
+        }
+    };
+}
+
+macro_rules! ffi_callback_proxy_with_return {
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $return_type:ty) => {
+        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void) -> $return_type {
+            let target = data as *mut $target_rust_type;
+            let result: OtcBool = (*target).$fn_name().into();
+            result.0
+        }
+    };
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty, $return_type:ty) => {
+        unsafe extern "C" fn $fn_name(
+            _: $target_type,
+            data: *mut c_void,
+            arg1: $arg1_type,
+        ) -> $return_type {
+            let target = data as *mut $target_rust_type;
+            let result: OtcBool = (*target).$fn_name(arg1).into();
+            result.0
+        }
+    };
+}
+
 macro_rules! ffi_callback {
     ($fn_name:ident) => {
         extern "C" fn $fn_name(session: *mut ffi::otc_session, _user_data: *mut c_void) {

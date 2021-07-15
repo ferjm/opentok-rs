@@ -1,10 +1,11 @@
 use crate::connection::Connection;
 use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
+use crate::publisher::Publisher;
 use crate::stream::{Stream, StreamVideoType};
 
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
@@ -387,8 +388,9 @@ impl Session {
         session_id: &str,
         callbacks: SessionCallbacks,
     ) -> Result<Session, OtcError> {
-        let api_key = std::ffi::CString::new(api_key).map_err(|_| OtcError::NullError)?;
-        let session_id = std::ffi::CString::new(session_id).map_err(|_| OtcError::NullError)?;
+        let api_key = CString::new(api_key).map_err(|_| OtcError::InvalidParam("api_key"))?;
+        let session_id =
+            CString::new(session_id).map_err(|_| OtcError::InvalidParam("session_id"))?;
         // In order to get the C layer to call Rust callbacks targeting the Session object,
         // we would need to pass down the pointer to the Rust object. Unfortunately, we cannot
         // modify the C layer to make it get and use this pointer, so we need to make it call
@@ -435,7 +437,7 @@ impl Session {
     /// * token - The client token for connecting to the session. Check
     /// https://tokbox.com/developer/guides/create-token/
     pub fn connect(&self, token: &str) -> OtcResult {
-        let token = std::ffi::CString::new(token).map_err(|_| OtcError::NullError)?;
+        let token = std::ffi::CString::new(token).map_err(|_| OtcError::InvalidParam("token"))?;
         unsafe { ffi::otc_session_connect(self.session_ptr, token.as_ptr()) }.into_result()
     }
 
@@ -448,6 +450,10 @@ impl Session {
     /// Releases resources associated with the session.
     pub fn delete(&self) -> OtcResult {
         unsafe { ffi::otc_session_delete(self.session_ptr) }.into_result()
+    }
+
+    pub fn publish(&self, publisher: Publisher) -> OtcResult {
+        unsafe { ffi::otc_session_publish(self.session_ptr, *publisher as *mut _) }.into_result()
     }
 
     callback_call!(on_connected);

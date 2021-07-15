@@ -1,5 +1,6 @@
 extern crate opentok;
 
+use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use std::env;
 
@@ -15,6 +16,9 @@ fn main() {
     let token: &str = args[3].as_ref();
 
     let _ = opentok::init();
+
+    let publisher_callbacks = PublisherCallbacks {};
+    let _publisher = Publisher::new("basic_video_chat", None, publisher_callbacks);
 
     let callbacks = SessionCallbacks::builder()
         .on_connected(|| {
