@@ -125,17 +125,17 @@ macro_rules! callback_setter {
 
 macro_rules! callback_call {
     ($fn_name:ident) => {
-        pub fn $fn_name(&self) {
+        fn $fn_name(&self) {
             self.callbacks.lock().unwrap().$fn_name();
         }
     };
     ($fn_name:ident, $ty1:ty) => {
-        pub fn $fn_name(&self, arg1: $ty1) {
+        fn $fn_name(&self, arg1: $ty1) {
             self.callbacks.lock().unwrap().$fn_name(arg1.into());
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty) => {
-        pub fn $fn_name(&self, arg1: $ty1, arg2: $ty2) {
+        fn $fn_name(&self, arg1: $ty1, arg2: $ty2) {
             self.callbacks
                 .lock()
                 .unwrap()
@@ -143,7 +143,7 @@ macro_rules! callback_call {
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty, $ty3:ty) => {
-        pub fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
+        fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
             self.callbacks
                 .lock()
                 .unwrap()

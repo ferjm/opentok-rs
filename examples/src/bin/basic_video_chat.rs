@@ -21,6 +21,9 @@ fn main() {
     let _publisher = Publisher::new("basic_video_chat", None, publisher_callbacks);
 
     let callbacks = SessionCallbacks::builder()
+        .on_connection_created(|_| {
+            println!("on_connection_created");
+        })
         .on_connected(|| {
             println!("on_connected");
         })

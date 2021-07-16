@@ -473,12 +473,33 @@ impl Session {
     callback_call!(on_reconnection_started);
     callback_call!(on_reconnected);
     callback_call!(on_disconnected);
-    callback_call!(on_connection_created, *const ffi::otc_connection);
-    callback_call!(on_connection_dropped, *const ffi::otc_connection);
     callback_call!(on_stream_received, *const ffi::otc_stream);
     callback_call!(on_stream_dropped, *const ffi::otc_stream);
 
-    pub fn on_stream_has_audio_changed(
+    fn on_connection_created(&self, connection: *const ffi::otc_connection) {
+        let connection = unsafe { ffi::otc_connection_copy(connection) };
+        if connection.is_null() {
+            return;
+        }
+        self.callbacks
+            .lock()
+            .unwrap()
+            .on_connection_created((connection as *const ffi::otc_connection).into())
+    }
+
+    fn on_connection_dropped(&self, connection: *const ffi::otc_connection) {
+        let connection = unsafe { ffi::otc_connection_copy(connection) };
+        if connection.is_null() {
+            return;
+        }
+        self.callbacks
+            .lock()
+            .unwrap()
+            .on_connection_dropped((connection as *const ffi::otc_connection).into())
+       
+    }
+
+    fn on_stream_has_audio_changed(
         &self,
         stream: *const ffi::otc_stream,
         has_audio: ffi::otc_bool,
@@ -489,7 +510,7 @@ impl Session {
             .on_stream_has_audio_changed(stream.into(), *OtcBool(has_audio))
     }
 
-    pub fn on_stream_has_video_changed(
+    fn on_stream_has_video_changed(
         &self,
         stream: *const ffi::otc_stream,
         has_video: ffi::otc_bool,
@@ -520,10 +541,14 @@ impl Session {
     ) {
         let type_ = unsafe { CStr::from_ptr(type_) };
         let signal = unsafe { CStr::from_ptr(signal) };
+        let connection = unsafe { ffi::otc_connection_copy(connection) };
+        if connection.is_null() {
+            return;
+        }
         self.callbacks.lock().unwrap().on_signal_received(
             type_.to_str().unwrap_or_default(),
             signal.to_str().unwrap_or_default(),
-            connection.into(),
+            (connection as *const ffi::otc_connection).into(),
         );
     }
 
