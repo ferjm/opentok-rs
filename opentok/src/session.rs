@@ -470,44 +470,56 @@ impl Session {
     }
 
     callback_call!(on_connected);
+    callback_call_with_copy!(
+        on_connection_created,
+        *const ffi::otc_connection,
+        ffi::otc_connection_copy
+    );
+    callback_call_with_copy!(
+        on_connection_dropped,
+        *const ffi::otc_connection,
+        ffi::otc_connection_copy
+    );
     callback_call!(on_reconnection_started);
     callback_call!(on_reconnected);
     callback_call!(on_disconnected);
-    callback_call!(on_stream_received, *const ffi::otc_stream);
-    callback_call!(on_stream_dropped, *const ffi::otc_stream);
-
-    fn on_connection_created(&self, connection: *const ffi::otc_connection) {
-        let connection = unsafe { ffi::otc_connection_copy(connection) };
-        if connection.is_null() {
-            return;
-        }
-        self.callbacks
-            .lock()
-            .unwrap()
-            .on_connection_created((connection as *const ffi::otc_connection).into())
-    }
-
-    fn on_connection_dropped(&self, connection: *const ffi::otc_connection) {
-        let connection = unsafe { ffi::otc_connection_copy(connection) };
-        if connection.is_null() {
-            return;
-        }
-        self.callbacks
-            .lock()
-            .unwrap()
-            .on_connection_dropped((connection as *const ffi::otc_connection).into())
-       
-    }
+    callback_call_with_copy!(
+        on_stream_received,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy
+    );
+    callback_call_with_copy!(
+        on_stream_dropped,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy
+    );
+    callback_call_with_copy!(
+        on_stream_video_dimensions_changed,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy,
+        i32,
+        i32
+    );
+    callback_call_with_copy!(
+        on_stream_video_type_changed,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy,
+        ffi::otc_stream_video_type
+    );
 
     fn on_stream_has_audio_changed(
         &self,
         stream: *const ffi::otc_stream,
         has_audio: ffi::otc_bool,
     ) {
-        self.callbacks
-            .lock()
-            .unwrap()
-            .on_stream_has_audio_changed(stream.into(), *OtcBool(has_audio))
+        if stream.is_null() {
+            return;
+        }
+        let stream = unsafe { ffi::otc_stream_copy(stream) };
+        self.callbacks.lock().unwrap().on_stream_has_audio_changed(
+            (stream as *const ffi::otc_stream).into(),
+            *OtcBool(has_audio),
+        )
     }
 
     fn on_stream_has_video_changed(
@@ -515,23 +527,15 @@ impl Session {
         stream: *const ffi::otc_stream,
         has_video: ffi::otc_bool,
     ) {
-        self.callbacks
-            .lock()
-            .unwrap()
-            .on_stream_has_video_changed(stream.into(), *OtcBool(has_video))
+        if stream.is_null() {
+            return;
+        }
+        let stream = unsafe { ffi::otc_stream_copy(stream) };
+        self.callbacks.lock().unwrap().on_stream_has_video_changed(
+            (stream as *const ffi::otc_stream).into(),
+            *OtcBool(has_video),
+        )
     }
-
-    callback_call!(
-        on_stream_video_dimensions_changed,
-        *const ffi::otc_stream,
-        i32,
-        i32
-    );
-    callback_call!(
-        on_stream_video_type_changed,
-        *const ffi::otc_stream,
-        ffi::otc_stream_video_type
-    );
 
     fn on_signal_received(
         &self,
@@ -539,12 +543,12 @@ impl Session {
         signal: *const c_char,
         connection: *const ffi::otc_connection,
     ) {
+        if type_.is_null() || signal.is_null() || connection.is_null() {
+            return;
+        }
         let type_ = unsafe { CStr::from_ptr(type_) };
         let signal = unsafe { CStr::from_ptr(signal) };
         let connection = unsafe { ffi::otc_connection_copy(connection) };
-        if connection.is_null() {
-            return;
-        }
         self.callbacks.lock().unwrap().on_signal_received(
             type_.to_str().unwrap_or_default(),
             signal.to_str().unwrap_or_default(),
@@ -553,6 +557,9 @@ impl Session {
     }
 
     fn on_archive_started(&self, archive_id: *const c_char, name: *const c_char) {
+        if archive_id.is_null() || name.is_null() {
+            return;
+        }
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         let name = unsafe { CStr::from_ptr(name) };
         self.callbacks.lock().unwrap().on_archive_started(
@@ -562,6 +569,9 @@ impl Session {
     }
 
     fn on_archive_stopped(&self, archive_id: *const c_char) {
+        if archive_id.is_null() {
+            return;
+        }
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         self.callbacks
             .lock()
@@ -570,6 +580,9 @@ impl Session {
     }
 
     fn on_error(&self, error_string: *const c_char, error: ffi::otc_session_error_code) {
+        if error_string.is_null() {
+            return;
+        }
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks
             .lock()
