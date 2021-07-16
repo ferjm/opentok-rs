@@ -58,63 +58,74 @@ macro_rules! ffi_callback_with_return {
 }
 
 macro_rules! callback {
-    ($fn_name:ident) => {
-        pub fn $fn_name(&self) {
+    ($fn_name:ident, $target:ty) => {
+        pub fn $fn_name(&self, target: $target) {
             if let Some(ref callback) = self.$fn_name {
-                callback();
+                callback(target);
             }
         }
     };
-    ($fn_name:ident, $arg1:ident, $ty1:ty) => {
-        pub fn $fn_name(&self, $arg1: $ty1) {
+    ($fn_name:ident, $target:ty, $ty1:ty) => {
+        pub fn $fn_name(&self, target: $target, arg1: $ty1) {
             if let Some(ref callback) = self.$fn_name {
-                callback($arg1);
+                callback(target, arg1);
             }
         }
     };
-    ($fn_name:ident, $arg1:ident, $ty1:ty, $arg2:ident, $ty2:ty) => {
-        pub fn $fn_name(&self, $arg1: $ty1, $arg2: $ty2) {
+    ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty) => {
+        pub fn $fn_name(&self, target: $target, arg1: $ty1, arg2: $ty2) {
             if let Some(ref callback) = self.$fn_name {
-                callback($arg1, $arg2);
+                callback(target, arg1, arg2);
             }
         }
     };
-    ($fn_name:ident, $arg1:ident, $ty1:ty, $arg2:ident, $ty2:ty, $arg3:ident, $ty3:ty) => {
-        pub fn $fn_name(&self, $arg1: $ty1, $arg2: $ty2, $arg3: $ty3) {
+    ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty) => {
+        pub fn $fn_name(&self, target: $target, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
             if let Some(ref callback) = self.$fn_name {
-                callback($arg1, $arg2, $arg3);
+                callback(target, arg1, arg2, arg3);
             }
         }
     };
 }
 
 macro_rules! callback_setter {
-    ($fn_name:ident) => {
-        pub fn $fn_name<F: Fn() + 'static>(self, callback: F) -> Self {
+    ($fn_name:ident, $target:ty) => {
+        pub fn $fn_name<F: Fn($target) + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
             }
         }
     };
-    ($fn_name:ident, $ty1:ty) => {
-        pub fn $fn_name<F: Fn($ty1) + 'static>(self, callback: F) -> Self {
+    ($fn_name:ident, $target:ty, $ty1:ty) => {
+        pub fn $fn_name<F: Fn($target, $ty1) + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
             }
         }
     };
-    ($fn_name:ident, $ty1:ty, $ty2:ty) => {
-        pub fn $fn_name<F: Fn($ty1, $ty2) + 'static>(self, callback: F) -> Self {
+    ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty) => {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2) + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
             }
         }
     };
-    ($fn_name:ident, $ty1:ty, $ty2:ty, $ty3:ty) => {
-        pub fn $fn_name<F: Fn($ty1, $ty2, $ty3) + 'static>(self, callback: F) -> Self {
+    ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty) => {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3) + 'static>(self, callback: F) -> Self {
+            Self {
+                $fn_name: Some(Box::new(callback)),
+                ..self
+            }
+        }
+    };
+    ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty, $t4:ty) => {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3, $t4) + 'static>(
+            self,
+            callback: F,
+        ) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -126,12 +137,15 @@ macro_rules! callback_setter {
 macro_rules! callback_call {
     ($fn_name:ident) => {
         fn $fn_name(&self) {
-            self.callbacks.lock().unwrap().$fn_name();
+            self.callbacks.lock().unwrap().$fn_name(self.clone());
         }
     };
     ($fn_name:ident, $ty1:ty) => {
         fn $fn_name(&self, arg1: $ty1) {
-            self.callbacks.lock().unwrap().$fn_name(arg1.into());
+            self.callbacks
+                .lock()
+                .unwrap()
+                .$fn_name(self.clone(), arg1.into());
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty) => {
@@ -139,15 +153,17 @@ macro_rules! callback_call {
             self.callbacks
                 .lock()
                 .unwrap()
-                .$fn_name(arg1.into(), arg2.into());
+                .$fn_name(self.clone(), arg1.into(), arg2.into());
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty, $ty3:ty) => {
         fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name(arg1.into(), arg2.into(), arg3.into());
+            self.callbacks.lock().unwrap().$fn_name(
+                self.clone(),
+                arg1.into(),
+                arg2.into(),
+                arg3.into(),
+            );
         }
     };
 }
@@ -162,7 +178,7 @@ macro_rules! callback_call_with_copy {
             self.callbacks
                 .lock()
                 .unwrap()
-                .$fn_name((arg1 as $ty1).into())
+                .$fn_name(self.clone(), (arg1 as $ty1).into())
         }
     };
     ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty) => {
@@ -171,10 +187,11 @@ macro_rules! callback_call_with_copy {
                 return;
             }
             let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name((arg1 as $ty1).into(), arg2.into())
+            self.callbacks.lock().unwrap().$fn_name(
+                self.clone(),
+                (arg1 as $ty1).into(),
+                arg2.into(),
+            )
         }
     };
     ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty, $ty3:ty) => {
@@ -183,10 +200,12 @@ macro_rules! callback_call_with_copy {
                 return;
             }
             let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name((arg1 as $ty1).into(), arg2.into(), arg3.into())
+            self.callbacks.lock().unwrap().$fn_name(
+                self.clone(),
+                (arg1 as $ty1).into(),
+                arg2.into(),
+                arg3.into(),
+            )
         }
     };
 }
