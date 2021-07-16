@@ -42,5 +42,8 @@ fn main() {
     let session = Session::new(api_key, session_id, callbacks.build()).unwrap();
     let _ = session.connect(token);
 
+    let main_loop = glib::MainLoop::new(None, false);
+    main_loop.run();
+
     let _ = opentok::deinit();
 }
