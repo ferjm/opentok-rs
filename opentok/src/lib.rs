@@ -8,6 +8,7 @@ mod macros;
 #[macro_use]
 pub mod connection;
 mod enums;
+pub mod log;
 pub mod publisher;
 pub mod session;
 pub mod stream;

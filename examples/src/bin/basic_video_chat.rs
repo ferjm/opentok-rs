@@ -1,5 +1,6 @@
 extern crate opentok;
 
+use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use std::env;
@@ -17,6 +18,8 @@ fn main() {
     let token: &str = args[3].as_ref();
 
     let _ = opentok::init();
+
+    log::enable_log(LogLevel::Info);
 
     let publisher_callbacks = PublisherCallbacks::builder()
         .on_stream_created(|_, _| {
