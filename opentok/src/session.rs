@@ -13,7 +13,7 @@ use thiserror::Error;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Error)]
 #[must_use]
 #[repr(u32)]
-pub enum OtcSessionError {
+pub enum SessionError {
     #[error("Authorization failure")]
     AuthorizationFailure,
     #[error("Block country")]
@@ -60,67 +60,61 @@ pub enum OtcSessionError {
     __Unknown,
 }
 
-impl From<ffi::otc_session_error_code> for OtcSessionError {
-    fn from(value: ffi::otc_session_error_code) -> OtcSessionError {
+impl From<ffi::otc_session_error_code> for SessionError {
+    fn from(value: ffi::otc_session_error_code) -> SessionError {
         match value {
             ffi::otc_session_error_code_OTC_SESSION_AUTHORIZATION_FAILURE => {
-                OtcSessionError::AuthorizationFailure
+                SessionError::AuthorizationFailure
             }
-            ffi::otc_session_error_code_OTC_SESSION_BLOCKED_COUNTRY => {
-                OtcSessionError::BlockedCountry
-            }
+            ffi::otc_session_error_code_OTC_SESSION_BLOCKED_COUNTRY => SessionError::BlockedCountry,
             ffi::otc_session_error_code_OTC_SESSION_CONNECTION_DROPPED => {
-                OtcSessionError::ConnectionDropped
+                SessionError::ConnectionDropped
             }
             ffi::otc_session_error_code_OTC_SESSION_CONNECTION_FAILED => {
-                OtcSessionError::ConnectionFailed
+                SessionError::ConnectionFailed
             }
             ffi::otc_session_error_code_OTC_SESSION_CONNECTION_LIMIT_EXCEEDED => {
-                OtcSessionError::ConnectionLimitExceeded
+                SessionError::ConnectionLimitExceeded
             }
             ffi::otc_session_error_code_OTC_SESSION_CONNECTION_REFUSED => {
-                OtcSessionError::ConnectionRefused
+                SessionError::ConnectionRefused
             }
             ffi::otc_session_error_code_OTC_SESSION_CONNECTION_TIMED_OUT => {
-                OtcSessionError::ConnectionTimedOut
+                SessionError::ConnectionTimedOut
             }
             ffi::otc_session_error_code_OTC_SESSION_FORCE_UNPUBLISH_OR_INVALID_STREAM => {
-                OtcSessionError::ForceUnpublishOrInvalidStream
+                SessionError::ForceUnpublishOrInvalidStream
             }
-            ffi::otc_session_error_code_OTC_SESSION_ILLEGAL_STATE => OtcSessionError::IllegalState,
-            ffi::otc_session_error_code_OTC_SESSION_INTERNAL_ERROR => {
-                OtcSessionError::InternalError
-            }
-            ffi::otc_session_error_code_OTC_SESSION_INVALID_SESSION => {
-                OtcSessionError::InvalidSession
-            }
+            ffi::otc_session_error_code_OTC_SESSION_ILLEGAL_STATE => SessionError::IllegalState,
+            ffi::otc_session_error_code_OTC_SESSION_INTERNAL_ERROR => SessionError::InternalError,
+            ffi::otc_session_error_code_OTC_SESSION_INVALID_SESSION => SessionError::InvalidSession,
             ffi::otc_session_error_code_OTC_SESSION_INVALID_SIGNAL_TYPE => {
-                OtcSessionError::InvalidSignalType
+                SessionError::InvalidSignalType
             }
-            ffi::otc_session_error_code_OTC_SESSION_NOT_CONNECTED => OtcSessionError::NotConnected,
+            ffi::otc_session_error_code_OTC_SESSION_NOT_CONNECTED => SessionError::NotConnected,
             ffi::otc_session_error_code_OTC_SESSION_NO_MESSAGING_SERVER => {
-                OtcSessionError::NoMessagingServer
+                SessionError::NoMessagingServer
             }
             ffi::otc_session_error_code_OTC_SESSION_NULL_OR_INVALID_PARAMETER => {
-                OtcSessionError::NullOrInvalidParameter
+                SessionError::NullOrInvalidParameter
             }
             ffi::otc_session_error_code_OTC_SESSION_PUBLISHER_NOT_FOUND => {
-                OtcSessionError::PublisherNotFound
+                SessionError::PublisherNotFound
             }
             ffi::otc_session_error_code_OTC_SESSION_SIGNAL_DATA_TOO_LONG => {
-                OtcSessionError::SignalDataTooLong
+                SessionError::SignalDataTooLong
             }
             ffi::otc_session_error_code_OTC_SESSION_SIGNAL_TYPE_TOO_LONG => {
-                OtcSessionError::SignalTypeTooLong
+                SessionError::SignalTypeTooLong
             }
-            ffi::otc_session_error_code_OTC_SESSION_STATE_FAILED => OtcSessionError::StateFailed,
+            ffi::otc_session_error_code_OTC_SESSION_STATE_FAILED => SessionError::StateFailed,
             ffi::otc_session_error_code_OTC_SESSION_SUBSCRIBER_NOT_FOUND => {
-                OtcSessionError::SubscriberNotFound
+                SessionError::SubscriberNotFound
             }
             ffi::otc_session_error_code_OTC_SESSION_UNEXPECTED_GET_SESSION_INFO_REPONSE => {
-                OtcSessionError::UnexpectedGetSessionInfoResponse
+                SessionError::UnexpectedGetSessionInfoResponse
             }
-            _ => OtcSessionError::__Unknown,
+            _ => SessionError::__Unknown,
         }
     }
 }
@@ -228,29 +222,12 @@ pub struct SessionCallbacks {
     on_signal_received: Option<Box<dyn Fn(Session, &str, &str, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(Session, &str, &str)>>,
     on_archive_stopped: Option<Box<dyn Fn(Session, &str)>>,
-    on_error: Option<Box<dyn Fn(Session, &str, OtcSessionError)>>,
+    on_error: Option<Box<dyn Fn(Session, &str, SessionError)>>,
 }
 
 impl SessionCallbacks {
     pub fn builder() -> SessionCallbacksBuilder {
-        SessionCallbacksBuilder {
-            on_connected: None,
-            on_reconnection_started: None,
-            on_reconnected: None,
-            on_disconnected: None,
-            on_connection_created: None,
-            on_connection_dropped: None,
-            on_stream_received: None,
-            on_stream_dropped: None,
-            on_stream_has_audio_changed: None,
-            on_stream_has_video_changed: None,
-            on_stream_video_dimensions_changed: None,
-            on_stream_video_type_changed: None,
-            on_signal_received: None,
-            on_archive_started: None,
-            on_archive_stopped: None,
-            on_error: None,
-        }
+        SessionCallbacksBuilder::default()
     }
 
     callback!(on_connected, Session);
@@ -312,13 +289,14 @@ impl SessionCallbacks {
         }
     }
 
-    pub fn on_error(&self, session: Session, error_string: &str, error: OtcSessionError) {
+    pub fn on_error(&self, session: Session, error_string: &str, error: SessionError) {
         if let Some(ref callback) = self.on_error {
             callback(session, error_string, error);
         }
     }
 }
 
+#[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct SessionCallbacksBuilder {
     on_connected: Option<Box<dyn Fn(Session)>>,
@@ -336,7 +314,7 @@ pub struct SessionCallbacksBuilder {
     on_signal_received: Option<Box<dyn Fn(Session, &str, &str, Connection)>>,
     on_archive_started: Option<Box<dyn Fn(Session, &str, &str)>>,
     on_archive_stopped: Option<Box<dyn Fn(Session, &str)>>,
-    on_error: Option<Box<dyn Fn(Session, &str, OtcSessionError)>>,
+    on_error: Option<Box<dyn Fn(Session, &str, SessionError)>>,
 }
 
 impl SessionCallbacksBuilder {
@@ -366,7 +344,7 @@ impl SessionCallbacksBuilder {
     callback_setter!(on_signal_received, Session, &str, &str, Connection);
     callback_setter!(on_archive_started, Session, &str, &str);
     callback_setter!(on_archive_stopped, Session, &str);
-    callback_setter!(on_error, Session, &str, OtcSessionError);
+    callback_setter!(on_error, Session, &str, SessionError);
 
     pub fn build(self) -> SessionCallbacks {
         SessionCallbacks {

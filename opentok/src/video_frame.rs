@@ -193,3 +193,9 @@ impl Deref for VideoFrame {
         &self.ptr
     }
 }
+
+impl From<*const ffi::otc_video_frame> for VideoFrame {
+    fn from(ptr: *const ffi::otc_video_frame) -> Self {
+        Self { ptr }
+    }
+}

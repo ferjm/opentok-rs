@@ -1,14 +1,17 @@
+use crate::stream::Stream;
 use crate::video_capturer::VideoCapturer;
+use crate::video_frame::VideoFrame;
 
 use once_cell::unsync::OnceCell;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 /// This enumeration represents all the possible error types
 /// associated with a publisher.
-enum PublisherError {
+pub enum PublisherError {
     /// Internal error.
     Internal,
     /// Tried to publish on a disconnected session.
@@ -105,6 +108,8 @@ ffi_callback!(
     f32
 );
 
+/*
+TODO
 ffi_callback!(
     on_audio_stats,
     *mut ffi::otc_publisher,
@@ -119,7 +124,7 @@ ffi_callback!(
     Publisher,
     *mut ffi::otc_publisher_video_stats,
     ffi::size_t
-);
+);*/
 
 ffi_callback!(
     on_error,
@@ -138,12 +143,64 @@ ffi_callback!(
 ///
 /// Data passed into a callback (other than `publisher` and `user_data`)
 /// is released after the callback finishes its execution.
-pub struct PublisherCallbacks {}
+#[allow(clippy::type_complexity)]
+pub struct PublisherCallbacks {
+    on_stream_created: Option<Box<dyn Fn(Publisher, Stream)>>,
+    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream)>>,
+    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame)>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32)>>,
+    //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
+    //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
+    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError)>>,
+}
 
+impl PublisherCallbacks {
+    pub fn builder() -> PublisherCallbacksBuilder {
+        PublisherCallbacksBuilder::default()
+    }
+
+    callback!(on_stream_created, Publisher, Stream);
+    callback!(on_stream_destroyed, Publisher, Stream);
+    callback!(on_render_frame, Publisher, VideoFrame);
+    callback!(on_audio_level_updated, Publisher, f32);
+    callback!(on_error, Publisher, &str, PublisherError);
+}
+
+#[derive(Default)]
+#[allow(clippy::type_complexity)]
+pub struct PublisherCallbacksBuilder {
+    on_stream_created: Option<Box<dyn Fn(Publisher, Stream)>>,
+    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream)>>,
+    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame)>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32)>>,
+    //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
+    //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
+    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError)>>,
+}
+
+impl PublisherCallbacksBuilder {
+    callback_setter!(on_stream_created, Publisher, Stream);
+    callback_setter!(on_stream_destroyed, Publisher, Stream);
+    callback_setter!(on_render_frame, Publisher, VideoFrame);
+    callback_setter!(on_audio_level_updated, Publisher, f32);
+    callback_setter!(on_error, Publisher, &str, PublisherError);
+
+    pub fn build(self) -> PublisherCallbacks {
+        PublisherCallbacks {
+            on_stream_created: self.on_stream_created,
+            on_stream_destroyed: self.on_stream_destroyed,
+            on_render_frame: self.on_render_frame,
+            on_audio_level_updated: self.on_audio_level_updated,
+            on_error: self.on_error,
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct Publisher {
     ptr: OnceCell<*const ffi::otc_publisher>,
     capturer: Option<Rc<VideoCapturer>>,
-    callbacks: PublisherCallbacks,
+    callbacks: Arc<Mutex<PublisherCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_publisher_callbacks>,
 }
 
@@ -160,7 +217,7 @@ impl Publisher {
         let mut publisher = Self {
             ptr: Default::default(),
             capturer,
-            callbacks,
+            callbacks: Arc::new(Mutex::new(callbacks)),
             ffi_callbacks: Default::default(),
         };
         let publisher_ptr: *mut c_void = &mut publisher as *mut _ as *mut c_void;
@@ -169,8 +226,8 @@ impl Publisher {
             on_stream_destroyed: Some(on_stream_destroyed),
             on_render_frame: Some(on_render_frame),
             on_audio_level_updated: Some(on_audio_level_updated),
-            on_audio_stats: Some(on_audio_stats),
-            on_video_stats: Some(on_video_stats),
+            on_audio_stats: None,
+            on_video_stats: None,
             on_error: Some(on_error),
             user_data: publisher_ptr,
             reserved: std::ptr::null_mut(),
@@ -182,29 +239,34 @@ impl Publisher {
         publisher
     }
 
-    fn on_stream_created(&self, _stream: *const ffi::otc_stream) {}
+    callback_call_with_copy!(
+        on_stream_created,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy
+    );
+    callback_call_with_copy!(
+        on_stream_destroyed,
+        *const ffi::otc_stream,
+        ffi::otc_stream_copy
+    );
+    callback_call_with_copy!(
+        on_render_frame,
+        *const ffi::otc_video_frame,
+        ffi::otc_video_frame_copy
+    );
+    callback_call!(on_audio_level_updated, f32);
 
-    fn on_stream_destroyed(&self, _stream: *const ffi::otc_stream) {}
-
-    fn on_render_frame(&self, _frame: *const ffi::otc_video_frame) {}
-
-    fn on_audio_level_updated(&self, _audio_level: f32) {}
-
-    fn on_audio_stats(
-        &self,
-        _audio_stats: *mut ffi::otc_publisher_audio_stats,
-        _number_of_stats: ffi::size_t,
-    ) {
+    fn on_error(&self, error_string: *const c_char, error_code: ffi::otc_publisher_error_code) {
+        if error_string.is_null() {
+            return;
+        }
+        let error_string = unsafe { CStr::from_ptr(error_string) };
+        self.callbacks.lock().unwrap().on_error(
+            self.clone(),
+            error_string.to_str().unwrap_or_default(),
+            error_code.into(),
+        );
     }
-
-    fn on_video_stats(
-        &self,
-        _video_stats: *mut ffi::otc_publisher_video_stats,
-        _number_of_stats: ffi::size_t,
-    ) {
-    }
-
-    fn on_error(&self, _error_string: *const c_char, _error_code: ffi::otc_publisher_error_code) {}
 }
 
 impl Deref for Publisher {

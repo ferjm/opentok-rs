@@ -18,14 +18,21 @@ fn main() {
 
     let _ = opentok::init();
 
-    let publisher_callbacks = PublisherCallbacks {};
+    let publisher_callbacks = PublisherCallbacks::builder()
+        .on_stream_created(|_, _| {
+            println!("on_stream_created");
+        })
+        .on_error(|_, error, _| {
+            println!("on_error {:?}", error);
+        })
+        .build();
     let _publisher = Arc::new(Publisher::new(
         "basic_video_chat",
         None,
         publisher_callbacks,
     ));
 
-    let callbacks = SessionCallbacks::builder()
+    let session_callbacks = SessionCallbacks::builder()
         .on_connection_created(|_, _| {
             println!("on_connection_created");
         })
@@ -36,10 +43,11 @@ fn main() {
         .on_disconnected(|_| {
             println!("on_disconnected");
         })
-        .on_error(|_, _, _| {
-            println!("on_error");
-        });
-    let session = Session::new(api_key, session_id, callbacks.build()).unwrap();
+        .on_error(|_, error, _| {
+            println!("on_error {:?}", error);
+        })
+        .build();
+    let session = Session::new(api_key, session_id, session_callbacks).unwrap();
     let _ = session.connect(token);
 
     let main_loop = glib::MainLoop::new(None, false);
