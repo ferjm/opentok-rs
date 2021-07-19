@@ -3,8 +3,10 @@ use crate::video_frame::{FrameFormat, VideoFrame};
 
 use once_cell::unsync::OnceCell;
 use std::os::raw::c_void;
+use std::sync::{Arc, Mutex};
 
 /// Settings for a VideoCapturer.
+#[derive(Clone)]
 pub struct VideoCapturerSettings {
     /// The pixel format.
     format: FrameFormat,
@@ -25,8 +27,8 @@ impl Default for VideoCapturerSettings {
     fn default() -> Self {
         Self {
             format: FrameFormat::Rgba32,
-            width: 800,
-            height: 600,
+            width: 1280,
+            height: 720,
             fps: 30,
             expected_delay: 0,
             mirror_on_local_render: false,
@@ -34,14 +36,12 @@ impl Default for VideoCapturerSettings {
     }
 }
 
-unsafe extern "C" fn init(
-    capturer: *const ffi::otc_video_capturer,
-    data: *mut c_void,
-) -> ffi::otc_bool {
-    let target = data as *mut VideoCapturer;
-    let result: OtcBool = (*target).init(capturer).into();
-    result.0
-}
+ffi_callback_with_return!(
+    init,
+    *const ffi::otc_video_capturer,
+    VideoCapturer,
+    ffi::otc_bool
+);
 
 ffi_callback_with_return!(
     destroy,
@@ -69,18 +69,54 @@ ffi_callback_with_return!(
     ffi::otc_bool
 );
 
+#[derive(Default)]
 pub struct VideoCapturerCallbacks {
-    init: Option<Box<dyn Fn()>>,
-    destroy: Option<Box<dyn Fn()>>,
-    start: Option<Box<dyn Fn()>>,
-    stop: Option<Box<dyn Fn()>>,
-    get_capture_settings: Option<Box<dyn Fn(VideoCapturerSettings)>>,
+    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
 }
 
+impl VideoCapturerCallbacks {
+    pub fn builder() -> VideoCapturerCallbacksBuilder {
+        VideoCapturerCallbacksBuilder::default()
+    }
+
+    callback_with_return!(init, VideoCapturer, OtcResult);
+    callback_with_return!(destroy, VideoCapturer, OtcResult);
+    callback_with_return!(start, VideoCapturer, OtcResult);
+    callback_with_return!(stop, VideoCapturer, OtcResult);
+}
+
+#[derive(Default)]
+pub struct VideoCapturerCallbacksBuilder {
+    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+}
+
+impl VideoCapturerCallbacksBuilder {
+    callback_setter_with_return!(init, VideoCapturer, OtcResult);
+    callback_setter_with_return!(destroy, VideoCapturer, OtcResult);
+    callback_setter_with_return!(start, VideoCapturer, OtcResult);
+    callback_setter_with_return!(stop, VideoCapturer, OtcResult);
+
+    pub fn build(self) -> VideoCapturerCallbacks {
+        VideoCapturerCallbacks {
+            init: self.init,
+            destroy: self.destroy,
+            start: self.start,
+            stop: self.stop,
+        }
+    }
+}
+
+#[derive(Clone)]
 pub struct VideoCapturer {
     ptr: Option<*const ffi::otc_video_capturer>,
     settings: VideoCapturerSettings,
-    callbacks: VideoCapturerCallbacks,
+    callbacks: Arc<Mutex<VideoCapturerCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_video_capturer_callbacks>,
 }
 
@@ -89,7 +125,7 @@ impl VideoCapturer {
         let mut capturer = Self {
             ptr: None,
             settings,
-            callbacks,
+            callbacks: Arc::new(Mutex::new(callbacks)),
             ffi_callbacks: Default::default(),
         };
         let capturer_ptr: *mut c_void = &mut capturer as *mut _ as *mut c_void;
@@ -118,22 +154,10 @@ impl VideoCapturer {
         }
     }
 
-    fn init(&mut self, ptr: *const ffi::otc_video_capturer) -> OtcResult {
-        self.ptr = Some(ptr);
-        Ok(())
-    }
-
-    fn destroy(&mut self) -> OtcResult {
-        Ok(())
-    }
-
-    fn start(&mut self) -> OtcResult {
-        Ok(())
-    }
-
-    fn stop(&mut self) -> OtcResult {
-        Ok(())
-    }
+    callback_call_with_return!(init, OtcResult);
+    callback_call_with_return!(destroy, OtcResult);
+    callback_call_with_return!(start, OtcResult);
+    callback_call_with_return!(stop, OtcResult);
 
     fn get_capture_settings(
         &mut self,
