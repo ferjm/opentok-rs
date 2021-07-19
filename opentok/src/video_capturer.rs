@@ -36,12 +36,14 @@ impl Default for VideoCapturerSettings {
     }
 }
 
-ffi_callback_with_return!(
-    init,
-    *const ffi::otc_video_capturer,
-    VideoCapturer,
-    ffi::otc_bool
-);
+unsafe extern "C" fn init(
+    capturer: *const ffi::otc_video_capturer,
+    data: *mut c_void,
+) -> ffi::otc_bool {
+    let target = data as *mut VideoCapturer;
+    let result: OtcBool = (*target).init(capturer).into();
+    result.0
+}
 
 ffi_callback_with_return!(
     destroy,
@@ -114,7 +116,7 @@ impl VideoCapturerCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct VideoCapturer {
-    ptr: Option<*const ffi::otc_video_capturer>,
+    ptr: OnceCell<*const ffi::otc_video_capturer>,
     settings: VideoCapturerSettings,
     callbacks: Arc<Mutex<VideoCapturerCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_video_capturer_callbacks>,
@@ -123,7 +125,7 @@ pub struct VideoCapturer {
 impl VideoCapturer {
     pub fn new(settings: VideoCapturerSettings, callbacks: VideoCapturerCallbacks) -> Self {
         let mut capturer = Self {
-            ptr: None,
+            ptr: Default::default(),
             settings,
             callbacks: Arc::new(Mutex::new(callbacks)),
             ffi_callbacks: Default::default(),
@@ -147,14 +149,18 @@ impl VideoCapturer {
     }
 
     fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
-        match self.ptr {
-            Some(ptr) => unsafe { ffi::otc_video_capturer_provide_frame(ptr, rotation, **frame) }
+        match self.ptr.get() {
+            Some(ptr) => unsafe { ffi::otc_video_capturer_provide_frame(*ptr, rotation, **frame) }
                 .into_result(),
             None => Err(OtcError::NullError),
         }
     }
 
-    callback_call_with_return!(init, OtcResult);
+    fn init(&self, capturer: *const ffi::otc_video_capturer) -> OtcResult {
+        let _ = self.ptr.set(capturer);
+        self.callbacks.lock().unwrap().init(self.clone())
+    }
+
     callback_call_with_return!(destroy, OtcResult);
     callback_call_with_return!(start, OtcResult);
     callback_call_with_return!(stop, OtcResult);

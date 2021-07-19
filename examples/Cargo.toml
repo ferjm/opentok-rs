@@ -9,4 +9,7 @@ glib = { git = "https://github.com/gtk-rs/gtk-rs-core" }
 opentok = { path = "../opentok" }
 
 [[bin]]
-name = "basic_video_chat"
+name = "publisher_only"
+
+[[bin]]
+name = "custom_video_capturer"

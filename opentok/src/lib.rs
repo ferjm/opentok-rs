@@ -12,7 +12,7 @@ pub mod log;
 pub mod publisher;
 pub mod session;
 pub mod stream;
-mod video_capturer;
+pub mod video_capturer;
 mod video_frame;
 
 use crate::enums::{IntoResult, OtcResult};

@@ -6,7 +6,6 @@ use once_cell::unsync::OnceCell;
 use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
-use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 /// This enumeration represents all the possible error types
@@ -199,17 +198,13 @@ impl PublisherCallbacksBuilder {
 #[derive(Clone)]
 pub struct Publisher {
     ptr: OnceCell<*const ffi::otc_publisher>,
-    capturer: Option<Rc<VideoCapturer>>,
+    capturer: Option<VideoCapturer>,
     callbacks: Arc<Mutex<PublisherCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_publisher_callbacks>,
 }
 
 impl Publisher {
-    pub fn new(
-        name: &str,
-        capturer: Option<Rc<VideoCapturer>>,
-        callbacks: PublisherCallbacks,
-    ) -> Self {
+    pub fn new(name: &str, capturer: Option<VideoCapturer>, callbacks: PublisherCallbacks) -> Self {
         let name = CString::new(name).unwrap_or_default();
         let capturer_callbacks = capturer.clone().map_or(std::ptr::null(), |capturer| {
             capturer.callbacks() as *const ffi::otc_video_capturer_callbacks
