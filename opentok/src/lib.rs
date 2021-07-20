@@ -12,10 +12,11 @@ pub mod log;
 pub mod publisher;
 pub mod session;
 pub mod stream;
+pub mod subscriber;
 pub mod video_capturer;
 mod video_frame;
 
-use crate::enums::{IntoResult, OtcResult};
+pub use crate::enums::{IntoResult, OtcError, OtcResult};
 
 use std::ptr;
 

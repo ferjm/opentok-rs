@@ -1,6 +1,7 @@
 use crate::connection::Connection;
 
 use std::ffi::CStr;
+use std::ops::Deref;
 
 /// Different type of video streams supported.
 pub enum StreamVideoType {
@@ -25,6 +26,7 @@ impl From<ffi::otc_stream_video_type> for StreamVideoType {
     }
 }
 
+#[derive(Clone)]
 pub struct Stream {
     ptr: *const ffi::otc_stream,
 }
@@ -94,5 +96,13 @@ impl Drop for Stream {
 impl From<*const ffi::otc_stream> for Stream {
     fn from(ptr: *const ffi::otc_stream) -> Stream {
         Stream { ptr }
+    }
+}
+
+impl Deref for Stream {
+    type Target = *const ffi::otc_stream;
+
+    fn deref(&self) -> &Self::Target {
+        &self.ptr
     }
 }

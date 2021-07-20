@@ -262,6 +262,14 @@ impl Publisher {
             error_code.into(),
         );
     }
+
+    pub fn delete(&self) {
+        let ptr = self.ptr.get().unwrap();
+        if ptr.is_null() {
+            return;
+        }
+        unsafe { ffi::otc_publisher_delete(*ptr as *mut ffi::otc_publisher) };
+    }
 }
 
 impl Deref for Publisher {

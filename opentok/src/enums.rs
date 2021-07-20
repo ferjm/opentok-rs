@@ -99,3 +99,18 @@ impl From<OtcResult> for OtcBool {
         }
     }
 }
+
+impl From<bool> for OtcBool {
+    fn from(value: bool) -> OtcBool {
+        match value {
+            true => OtcBool(1),
+            false => OtcBool(0),
+        }
+    }
+}
+
+impl From<OtcBool> for ffi::otc_bool {
+    fn from(value: OtcBool) -> ffi::otc_bool {
+        value.0
+    }
+}
