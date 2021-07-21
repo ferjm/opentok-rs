@@ -65,9 +65,10 @@ impl Renderer {
         {
             let buffer = buffer.get_mut().unwrap();
             buffer.copy_from_slice(0, data).expect("copying failed");
+            let flags = gst_video::VideoFrameFlags::empty();
             gst_video::VideoMeta::add_full(
                 buffer,
-                gst_video::VideoFrameFlags::empty(),
+                flags,
                 Renderer::gst_from_otc_format(format),
                 width,
                 height,

@@ -42,12 +42,26 @@ fn main() {
 
     let subscriber_callbacks = SubscriberCallbacks::builder()
         .on_render_frame(move |_, frame| {
+            let width = frame.get_width().unwrap() as u32;
+            let height = frame.get_height().unwrap() as u32;
+
+            let get_plane_size = |format, width: u32, height: u32| match format {
+                FramePlane::Y => width * height,
+                FramePlane::U | FramePlane::V => {
+                    let pw = (width + 1) >> 1;
+                    let ph = (height + 1) >> 1;
+                    pw * ph
+                }
+                _ => unimplemented!(),
+            };
+
             let offset = [
                 0,
-                frame.get_plane_stride(FramePlane::Y).unwrap() as usize,
-                frame.get_plane_stride(FramePlane::Y).unwrap() as usize
-                    + frame.get_plane_stride(FramePlane::U).unwrap() as usize,
+                get_plane_size(FramePlane::Y, width, height) as usize,
+                get_plane_size(FramePlane::Y, width, height) as usize
+                    + get_plane_size(FramePlane::U, width, height) as usize,
             ];
+            println!("offset {:?}", offset);
             let stride = [
                 frame.get_plane_stride(FramePlane::Y).unwrap(),
                 frame.get_plane_stride(FramePlane::U).unwrap(),
@@ -56,8 +70,8 @@ fn main() {
             renderer.lock().unwrap().as_ref().unwrap().push_buffer(
                 frame.get_buffer().unwrap(),
                 frame.get_format().unwrap(),
-                frame.get_width().unwrap() as u32,
-                frame.get_height().unwrap() as u32,
+                width,
+                height,
                 &offset,
                 &stride,
             );
