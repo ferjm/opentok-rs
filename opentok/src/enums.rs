@@ -41,6 +41,9 @@ pub enum OtcError {
     /// Unexpected null pointer
     #[error("Unexpected null pointer")]
     NullError,
+    /// Double initilization error.
+    #[error("{0} has already been initialized")]
+    AlreadyInitialized(&'static str),
     /// Unknown error
     #[doc(hidden)]
     #[error("Unknown error. Life is hard sometimes")]

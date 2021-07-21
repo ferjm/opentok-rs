@@ -2,6 +2,7 @@ use crate::connection::Connection;
 use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::publisher::Publisher;
 use crate::stream::{Stream, StreamVideoType};
+use crate::subscriber::Subscriber;
 
 use once_cell::sync::OnceCell;
 use std::ffi::{CStr, CString};
@@ -459,6 +460,15 @@ impl Session {
             ffi::otc_session_publish(*self.ptr.get().unwrap() as *mut _, **publisher as *mut _)
         }
         .into_result()
+    }
+
+    pub fn subscribe(&self, subscriber: &Subscriber) -> OtcResult {
+        let ptr = self.ptr.get().unwrap();
+        if ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        unsafe { ffi::otc_session_subscribe(*ptr as *mut ffi::otc_session, **subscriber as *mut _) }
+            .into_result()
     }
 
     callback_call!(on_connected);

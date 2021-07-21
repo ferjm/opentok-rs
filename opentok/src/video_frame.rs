@@ -1,9 +1,11 @@
+use crate::{OtcError, OtcResult};
+
 use std::convert::TryInto;
 use std::ops::Deref;
 use std::slice;
 
 /// Video frame format enumeration.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum FrameFormat {
     Abgr32,
     Argb32,
@@ -68,7 +70,7 @@ impl From<FrameFormat> for ffi::otc_video_frame_format {
 }
 
 /// Video frame video plane enumeration.
-enum FramePlane {
+pub enum FramePlane {
     Packed,
     U,
     UvInterleaved,
@@ -79,8 +81,8 @@ enum FramePlane {
 }
 
 impl From<ffi::otc_video_frame_plane> for FramePlane {
-    fn from(type_: ffi::otc_video_frame_plane) -> FramePlane {
-        match type_ {
+    fn from(plane: ffi::otc_video_frame_plane) -> FramePlane {
+        match plane {
             ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED => FramePlane::Packed,
             ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U => FramePlane::U,
             ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_UV_INTERLEAVED => {
@@ -96,18 +98,36 @@ impl From<ffi::otc_video_frame_plane> for FramePlane {
     }
 }
 
+impl From<FramePlane> for ffi::otc_video_frame_plane {
+    fn from(plane: FramePlane) -> ffi::otc_video_frame_plane {
+        match plane {
+            FramePlane::Packed => ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED,
+            FramePlane::U => ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U,
+            FramePlane::UvInterleaved => {
+                ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_UV_INTERLEAVED
+            }
+            FramePlane::V => ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_V,
+            FramePlane::VuInterleaved => {
+                ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_VU_INTERLEAVED
+            }
+            FramePlane::Y => ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_Y,
+            FramePlane::__Unknown => u32::MAX,
+        }
+    }
+}
+
 pub struct VideoFrame {
     ptr: *const ffi::otc_video_frame,
 }
 
 impl VideoFrame {
-    fn new(format: FrameFormat, width: i32, height: i32, buffer: Vec<u8>) -> Self {
+    pub fn new(format: FrameFormat, width: i32, height: i32, buffer: Vec<u8>) -> Self {
         Self {
             ptr: unsafe { ffi::otc_video_frame_new(format.into(), width, height, buffer.as_ptr()) },
         }
     }
 
-    fn new_mjpeg(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
+    pub fn new_mjpeg(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
         Self {
             ptr: unsafe {
                 ffi::otc_video_frame_new_MJPEG(
@@ -120,7 +140,7 @@ impl VideoFrame {
         }
     }
 
-    fn new_compressed(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
+    pub fn new_compressed(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
         Self {
             ptr: unsafe {
                 ffi::otc_video_frame_new_compressed(
@@ -135,51 +155,113 @@ impl VideoFrame {
 
     // FIXME: implement more constructors as needed.
 
-    fn get_buffer(&self) -> &[u8] {
+    pub fn get_buffer(&self) -> Result<&[u8], OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
         let data = unsafe { ffi::otc_video_frame_get_buffer(self.ptr) };
         let size = unsafe { ffi::otc_video_frame_get_buffer_size(self.ptr) };
-        unsafe { slice::from_raw_parts(data, size.try_into().expect("u64 to usize cast")) }
+        Ok(unsafe { slice::from_raw_parts(data, size.try_into().expect("u64 to usize cast")) })
     }
 
-    fn get_timestamp(&self) -> i64 {
-        unsafe { ffi::otc_video_frame_get_timestamp(self.ptr) }
-    }
-
-    fn set_timestamp(&mut self, timestamp: i64) {
-        unsafe {
-            ffi::otc_video_frame_set_timestamp(self.ptr as *mut ffi::otc_video_frame, timestamp)
+    pub fn get_timestamp(&self) -> Result<i64, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
         }
+        Ok(unsafe { ffi::otc_video_frame_get_timestamp(self.ptr) })
     }
 
-    fn get_width(&self) -> i32 {
-        unsafe { ffi::otc_video_frame_get_width(self.ptr) }
-    }
-
-    fn get_height(&self) -> i32 {
-        unsafe { ffi::otc_video_frame_get_height(self.ptr) }
-    }
-
-    fn get_number_of_planes(&self) -> usize {
+    pub fn set_timestamp(&mut self, timestamp: i64) -> OtcResult {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
         unsafe {
+            ffi::otc_video_frame_set_timestamp(self.ptr as *mut ffi::otc_video_frame, timestamp);
+        }
+        Ok(())
+    }
+
+    pub fn get_width(&self) -> Result<i32, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(unsafe { ffi::otc_video_frame_get_width(self.ptr) })
+    }
+
+    pub fn get_height(&self) -> Result<i32, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(unsafe { ffi::otc_video_frame_get_height(self.ptr) })
+    }
+
+    pub fn get_number_of_planes(&self) -> Result<usize, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(unsafe {
             ffi::otc_video_frame_get_number_of_planes(self.ptr)
                 .try_into()
                 .expect("u64 to usize cast")
+        })
+    }
+
+    pub fn get_format(&self) -> Result<FrameFormat, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
         }
+        Ok(unsafe { ffi::otc_video_frame_get_format(self.ptr) }.into())
     }
 
-    fn get_format(&self) -> FrameFormat {
-        unsafe { ffi::otc_video_frame_get_format(self.ptr) }.into()
-    }
-
-    fn set_format(&mut self, format: FrameFormat) {
+    pub fn set_format(&mut self, format: FrameFormat) -> OtcResult {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
         unsafe {
-            ffi::otc_video_frame_set_format(self.ptr as *mut ffi::otc_video_frame, format.into())
+            ffi::otc_video_frame_set_format(self.ptr as *mut ffi::otc_video_frame, format.into());
         }
+        Ok(())
+    }
+
+    pub fn convert(&mut self, format: FrameFormat) -> Result<VideoFrame, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(((unsafe {
+            ffi::otc_video_frame_convert(format.into(), self.ptr as *mut ffi::otc_video_frame)
+        }) as *const ffi::otc_video_frame)
+            .into())
+    }
+
+    pub fn get_plane_size(&self, plane: FramePlane) -> Result<usize, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(unsafe {
+            ffi::otc_video_frame_get_plane_size(self.ptr as *mut ffi::otc_video_frame, plane.into())
+                as usize
+        })
+    }
+
+    pub fn get_plane_stride(&self, plane: FramePlane) -> Result<i32, OtcError> {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        Ok(unsafe {
+            ffi::otc_video_frame_get_plane_stride(
+                self.ptr as *mut ffi::otc_video_frame,
+                plane.into(),
+            )
+        })
     }
 }
 
 impl Drop for VideoFrame {
     fn drop(&mut self) {
+        if self.ptr.is_null() {
+            panic!("Attempting to drop an invalid VideoFrame pointer");
+        }
+
         unsafe {
             ffi::otc_video_frame_delete(self.ptr as *mut ffi::otc_video_frame);
         }

@@ -5,11 +5,19 @@ authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
 edition = "2018"
 
 [dependencies]
+anyhow = "1.0.40"
+derive_more = "0.99.14"
 glib = { git = "https://github.com/gtk-rs/gtk-rs-core" }
+gst = { package = "gstreamer", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+gst-app = { package = "gstreamer-app", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+gst-video = { package = "gstreamer-video", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
 opentok = { path = "../opentok" }
 
 [[bin]]
-name = "publisher_only"
+name = "basic_video_chat"
 
 [[bin]]
 name = "custom_video_capturer"
+
+[[bin]]
+name = "publisher_only"

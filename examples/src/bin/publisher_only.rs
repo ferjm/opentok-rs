@@ -9,7 +9,7 @@ use std::sync::Arc;
 fn main() {
     let args: Vec<_> = env::args().collect();
     if args.len() != 4 {
-        println!("Usage: basic_video_chat <api key> <session ID> <token>");
+        println!("Usage: subscriber_only <api key> <session ID> <token>");
         std::process::exit(-1);
     }
 

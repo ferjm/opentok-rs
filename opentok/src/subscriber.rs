@@ -4,6 +4,7 @@ use crate::video_frame::VideoFrame;
 
 use once_cell::unsync::OnceCell;
 use std::ffi::CStr;
+use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
 
@@ -234,16 +235,16 @@ pub struct Subscriber {
     ptr: OnceCell<*const ffi::otc_subscriber>,
     callbacks: Arc<Mutex<SubscriberCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_subscriber_callbacks>,
-    stream: Stream,
+    stream: OnceCell<Stream>,
 }
 
 impl Subscriber {
-    pub fn new(stream: Stream, callbacks: SubscriberCallbacks) -> Self {
+    pub fn new(callbacks: SubscriberCallbacks) -> Self {
         let mut subscriber = Self {
             ptr: Default::default(),
             callbacks: Arc::new(Mutex::new(callbacks)),
             ffi_callbacks: Default::default(),
-            stream: stream.clone(),
+            stream: Default::default(),
         };
         let subscriber_ptr: *mut c_void = &mut subscriber as *mut _ as *mut c_void;
         let ffi_callbacks = ffi::otc_subscriber_callbacks {
@@ -265,9 +266,6 @@ impl Subscriber {
             user_data: subscriber_ptr,
             reserved: std::ptr::null_mut(),
         };
-        let _ = subscriber
-            .ptr
-            .set(unsafe { ffi::otc_subscriber_new(*stream, &ffi_callbacks) });
         let _ = subscriber.ffi_callbacks.set(ffi_callbacks);
         subscriber
     }
@@ -309,8 +307,20 @@ impl Subscriber {
         unsafe { ffi::otc_subscriber_delete(*ptr as *mut ffi::otc_subscriber) };
     }
 
-    pub fn get_stream(&self) -> Stream {
-        self.stream.clone()
+    pub fn set_stream(&self, stream: Stream) -> OtcResult {
+        if self.stream.get().is_some() {
+            return Err(OtcError::AlreadyInitialized("stream"));
+        }
+        assert!(self.ptr.get().is_none());
+        assert!(self.ffi_callbacks.get().is_some());
+        let _ = self
+            .ptr
+            .set(unsafe { ffi::otc_subscriber_new(*stream, self.ffi_callbacks.get().unwrap()) });
+        Ok(())
+    }
+
+    pub fn get_stream(&self) -> Option<Stream> {
+        self.stream.get().cloned()
     }
 
     pub fn set_subscribe_to_video(&self, subscribe_to_video: bool) -> OtcResult {
@@ -424,5 +434,13 @@ impl Subscriber {
         }
         .into_result()
         .map(|_| framerate)
+    }
+}
+
+impl Deref for Subscriber {
+    type Target = *const ffi::otc_subscriber;
+
+    fn deref(&self) -> &Self::Target {
+        self.ptr.get().unwrap()
     }
 }
