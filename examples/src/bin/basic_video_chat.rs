@@ -61,7 +61,7 @@ fn main() {
                 get_plane_size(FramePlane::Y, width, height) as usize
                     + get_plane_size(FramePlane::U, width, height) as usize,
             ];
-            println!("offset {:?}", offset);
+
             let stride = [
                 frame.get_plane_stride(FramePlane::Y).unwrap(),
                 frame.get_plane_stride(FramePlane::U).unwrap(),
