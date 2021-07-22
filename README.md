@@ -32,3 +32,8 @@ export LD_LIBRARY_PATH="/home/quijote/opentok/libopentok_linux_llvm_x86_64-2.19.
 export LIBRARY_PATH="/home/quijote/opentok/libopentok_linux_llvm_x86_64-2.19.1/lib:$LIBRARY_PATH"
 ```
 
+In Fedora you need to make sure `libcxx` is installed:
+
+```sh
+sudo dnf install -y libcxx-devel
+```
