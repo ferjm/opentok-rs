@@ -19,33 +19,13 @@ impl Renderer {
         let pipeline = gst::Pipeline::new(None);
         let src =
             gst::ElementFactory::make("appsrc", None).map_err(|_| MissingElement("appsrc"))?;
-        let rawvideoparse = gst::ElementFactory::make("rawvideoparse", None)
-            .map_err(|_| MissingElement("rawvideoparse"))?;
-        let queue =
-            gst::ElementFactory::make("queue", None).map_err(|_| MissingElement("queue"))?;
         let videoconvert = gst::ElementFactory::make("videoconvert", None)
             .map_err(|_| MissingElement("videoconvert"))?;
-        let videoscale = gst::ElementFactory::make("videoscale", None)
-            .map_err(|_| MissingElement("videoscale"))?;
         let sink = gst::ElementFactory::make("autovideosink", None)
             .map_err(|_| MissingElement("autovideosink"))?;
 
-        pipeline.add_many(&[
-            &src,
-            &rawvideoparse,
-            &queue,
-            &videoconvert,
-            &videoscale,
-            &sink,
-        ])?;
-        gst::Element::link_many(&[
-            &src,
-            &rawvideoparse,
-            &queue,
-            &videoconvert,
-            &videoscale,
-            &sink,
-        ])?;
+        pipeline.add_many(&[&src, &videoconvert, &sink])?;
+        gst::Element::link_many(&[&src, &videoconvert, &sink])?;
 
         pipeline.set_state(gst::State::Playing)?;
 
@@ -62,18 +42,14 @@ impl Renderer {
         stride: &[i32],
     ) {
         let mut buffer = gst::Buffer::with_size(data.len()).unwrap();
+        let gst_format = Renderer::gst_from_otc_format(format);
+        // TODO: Set PTS on buffer
         {
             let buffer = buffer.get_mut().unwrap();
             buffer.copy_from_slice(0, data).expect("copying failed");
             let flags = gst_video::VideoFrameFlags::empty();
             gst_video::VideoMeta::add_full(
-                buffer,
-                flags,
-                Renderer::gst_from_otc_format(format),
-                width,
-                height,
-                offset,
-                stride,
+                buffer, flags, gst_format, width, height, offset, stride,
             )
             .unwrap();
         }
@@ -82,7 +58,15 @@ impl Renderer {
             .clone()
             .dynamic_cast::<gst_app::AppSrc>()
             .expect("Source element is expected to be an appsrc!");
-        let _ = appsrc.push_buffer(buffer);
+        let caps = gst::Caps::builder("video/x-raw")
+            .field("width", width as i32)
+            .field("height", height as i32)
+            .field("framerate", gst::Fraction::new(1, 1))
+            .field("format", format!("{}", gst_format))
+            .build();
+
+        let sample = gst::Sample::builder().caps(&caps).buffer(&buffer).build();
+        let _ = appsrc.push_sample(&sample);
     }
 
     fn gst_from_otc_format(format: FrameFormat) -> VideoFormat {
