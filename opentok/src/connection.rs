@@ -24,6 +24,9 @@ impl Connection {
 
 impl Drop for Connection {
     fn drop(&mut self) {
+        if self.ptr.is_null() {
+            panic!("Attempting to drop an invalid Connection pointer");
+        }
         unsafe { ffi::otc_connection_delete(self.ptr as *mut ffi::otc_connection) };
     }
 }

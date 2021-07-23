@@ -68,7 +68,13 @@ fn main() {
             println!("on_error {:?}", error);
         })
         .build();
-    let session = Session::new(api_key, session_id, session_callbacks).unwrap();
+    let session = match Session::new(api_key, session_id, session_callbacks) {
+        Ok(session) => session,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            return;
+        }
+    };
     let _ = session.connect(token);
 
     let main_loop = glib::MainLoop::new(None, false);

@@ -89,6 +89,9 @@ impl Stream {
 
 impl Drop for Stream {
     fn drop(&mut self) {
+        if self.ptr.is_null() {
+            panic!("Attempting to drop an invalid Stream pointer");
+        }
         unsafe { ffi::otc_stream_delete(self.ptr as *mut ffi::otc_stream) };
     }
 }
