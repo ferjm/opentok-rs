@@ -233,15 +233,12 @@ macro_rules! callback_setter_with_return {
 macro_rules! callback_call {
     ($fn_name:ident) => {
         fn $fn_name(&self) {
-            self.callbacks.lock().unwrap().$fn_name(self.clone());
+            self.callbacks.lock().unwrap().$fn_name(self);
         }
     };
     ($fn_name:ident, $ty1:ty) => {
         fn $fn_name(&self, arg1: $ty1) {
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name(self.clone(), arg1.into());
+            self.callbacks.lock().unwrap().$fn_name(self, arg1.into());
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty) => {
@@ -249,17 +246,15 @@ macro_rules! callback_call {
             self.callbacks
                 .lock()
                 .unwrap()
-                .$fn_name(self.clone(), arg1.into(), arg2.into());
+                .$fn_name(self, arg1.into(), arg2.into());
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty, $ty3:ty) => {
         fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
-            self.callbacks.lock().unwrap().$fn_name(
-                self.clone(),
-                arg1.into(),
-                arg2.into(),
-                arg3.into(),
-            );
+            self.callbacks
+                .lock()
+                .unwrap()
+                .$fn_name(self, arg1.into(), arg2.into(), arg3.into());
         }
     };
 }
@@ -267,15 +262,12 @@ macro_rules! callback_call {
 macro_rules! callback_call_with_return {
     ($fn_name:ident, $ret:ty) => {
         fn $fn_name(&self) -> $ret {
-            self.callbacks.lock().unwrap().$fn_name(self.clone())
+            self.callbacks.lock().unwrap().$fn_name(self)
         }
     };
     ($fn_name:ident, $ty1:ty, $ret:ty) => {
         fn $fn_name(&self, arg1: $ty1) -> $ret {
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name(self.clone(), arg1.into())
+            self.callbacks.lock().unwrap().$fn_name(self, arg1.into())
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty, $ret:ty) => {
@@ -283,17 +275,15 @@ macro_rules! callback_call_with_return {
             self.callbacks
                 .lock()
                 .unwrap()
-                .$fn_name(self.clone(), arg1.into(), arg2.into())
+                .$fn_name(self, arg1.into(), arg2.into())
         }
     };
     ($fn_name:ident, $ty1:ty, $ty2:ty, $ty3:ty, $ret:ty) => {
         fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) -> $ret {
-            self.callbacks.lock().unwrap().$fn_name(
-                self.clone(),
-                arg1.into(),
-                arg2.into(),
-                arg3.into(),
-            )
+            self.callbacks
+                .lock()
+                .unwrap()
+                .$fn_name(self, arg1.into(), arg2.into(), arg3.into())
         }
     };
 }
@@ -308,7 +298,7 @@ macro_rules! callback_call_with_copy {
             self.callbacks
                 .lock()
                 .unwrap()
-                .$fn_name(self.clone(), (arg1 as $ty1).into())
+                .$fn_name(self, (arg1 as $ty1).into())
         }
     };
     ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty) => {
@@ -317,11 +307,10 @@ macro_rules! callback_call_with_copy {
                 return;
             }
             let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks.lock().unwrap().$fn_name(
-                self.clone(),
-                (arg1 as $ty1).into(),
-                arg2.into(),
-            )
+            self.callbacks
+                .lock()
+                .unwrap()
+                .$fn_name(self, (arg1 as $ty1).into(), arg2.into())
         }
     };
     ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty, $ty3:ty) => {
@@ -331,7 +320,7 @@ macro_rules! callback_call_with_copy {
             }
             let arg1 = unsafe { $copy_fn(arg1) };
             self.callbacks.lock().unwrap().$fn_name(
-                self.clone(),
+                self,
                 (arg1 as $ty1).into(),
                 arg2.into(),
                 arg3.into(),

@@ -208,25 +208,27 @@ ffi_callback!(
 
 #[allow(clippy::type_complexity)]
 pub struct SessionCallbacks {
-    on_connected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_reconnection_started: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_reconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_disconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_connection_created: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
-    on_connection_dropped: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
-    on_stream_received: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
-    on_stream_dropped: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_connected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_reconnection_started: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_connection_created: Option<Box<dyn Fn(&Session, Connection) + Send + Sync + 'static>>,
+    on_connection_dropped: Option<Box<dyn Fn(&Session, Connection) + Send + Sync + 'static>>,
+    on_stream_received: Option<Box<dyn Fn(&Session, Stream) + Send + Sync + 'static>>,
+    on_stream_dropped: Option<Box<dyn Fn(&Session, Stream) + Send + Sync + 'static>>,
+    on_stream_has_audio_changed:
+        Option<Box<dyn Fn(&Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_has_video_changed:
+        Option<Box<dyn Fn(&Session, Stream, bool) + Send + Sync + 'static>>,
     on_stream_video_dimensions_changed:
-        Option<Box<dyn Fn(Session, Stream, i32, i32) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, Stream, i32, i32) + Send + Sync + 'static>>,
     on_stream_video_type_changed:
-        Option<Box<dyn Fn(Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
     on_signal_received:
-        Option<Box<dyn Fn(Session, &str, &str, Connection) + Send + Sync + 'static>>,
-    on_archive_started: Option<Box<dyn Fn(Session, &str, &str) + Send + Sync + 'static>>,
-    on_archive_stopped: Option<Box<dyn Fn(Session, &str) + Send + Sync + 'static>>,
-    on_error: Option<Box<dyn Fn(Session, &str, SessionError) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, &str, &str, Connection) + Send + Sync + 'static>>,
+    on_archive_started: Option<Box<dyn Fn(&Session, &str, &str) + Send + Sync + 'static>>,
+    on_archive_stopped: Option<Box<dyn Fn(&Session, &str) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(&Session, &str, SessionError) + Send + Sync + 'static>>,
 }
 
 impl SessionCallbacks {
@@ -234,22 +236,22 @@ impl SessionCallbacks {
         SessionCallbacksBuilder::default()
     }
 
-    callback!(on_connected, Session);
-    callback!(on_reconnection_started, Session);
-    callback!(on_reconnected, Session);
-    callback!(on_disconnected, Session);
-    callback!(on_connection_created, Session, Connection);
-    callback!(on_connection_dropped, Session, Connection);
-    callback!(on_stream_received, Session, Stream);
-    callback!(on_stream_dropped, Session, Stream);
+    callback!(on_connected, &Session);
+    callback!(on_reconnection_started, &Session);
+    callback!(on_reconnected, &Session);
+    callback!(on_disconnected, &Session);
+    callback!(on_connection_created, &Session, Connection);
+    callback!(on_connection_dropped, &Session, Connection);
+    callback!(on_stream_received, &Session, Stream);
+    callback!(on_stream_dropped, &Session, Stream);
 
-    pub fn on_stream_has_audio_changed(&self, session: Session, stream: Stream, has_audio: bool) {
+    pub fn on_stream_has_audio_changed(&self, session: &Session, stream: Stream, has_audio: bool) {
         if let Some(ref callback) = self.on_stream_has_audio_changed {
             callback(session, stream, has_audio);
         }
     }
 
-    pub fn on_stream_has_video_changed(&self, session: Session, stream: Stream, has_video: bool) {
+    pub fn on_stream_has_video_changed(&self, session: &Session, stream: Stream, has_video: bool) {
         if let Some(ref callback) = self.on_stream_has_video_changed {
             callback(session, stream, has_video);
         }
@@ -257,21 +259,21 @@ impl SessionCallbacks {
 
     callback!(
         on_stream_video_dimensions_changed,
-        Session,
+        &Session,
         Stream,
         i32,
         i32
     );
     callback!(
         on_stream_video_type_changed,
-        Session,
+        &Session,
         Stream,
         StreamVideoType
     );
 
     pub fn on_signal_received(
         &self,
-        session: Session,
+        session: &Session,
         type_: &str,
         signal: &str,
         connection: Connection,
@@ -281,19 +283,19 @@ impl SessionCallbacks {
         }
     }
 
-    pub fn on_archive_started(&self, session: Session, archive_id: &str, name: &str) {
+    pub fn on_archive_started(&self, session: &Session, archive_id: &str, name: &str) {
         if let Some(ref callback) = self.on_archive_started {
             callback(session, archive_id, name);
         }
     }
 
-    pub fn on_archive_stopped(&self, session: Session, archive_id: &str) {
+    pub fn on_archive_stopped(&self, session: &Session, archive_id: &str) {
         if let Some(ref callback) = self.on_archive_stopped {
             callback(session, archive_id);
         }
     }
 
-    pub fn on_error(&self, session: Session, error_string: &str, error: SessionError) {
+    pub fn on_error(&self, session: &Session, error_string: &str, error: SessionError) {
         if let Some(ref callback) = self.on_error {
             callback(session, error_string, error);
         }
@@ -303,55 +305,57 @@ impl SessionCallbacks {
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct SessionCallbacksBuilder {
-    on_connected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_reconnection_started: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_reconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_disconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
-    on_connection_created: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
-    on_connection_dropped: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
-    on_stream_received: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
-    on_stream_dropped: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_connected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_reconnection_started: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(&Session) + Send + Sync + 'static>>,
+    on_connection_created: Option<Box<dyn Fn(&Session, Connection) + Send + Sync + 'static>>,
+    on_connection_dropped: Option<Box<dyn Fn(&Session, Connection) + Send + Sync + 'static>>,
+    on_stream_received: Option<Box<dyn Fn(&Session, Stream) + Send + Sync + 'static>>,
+    on_stream_dropped: Option<Box<dyn Fn(&Session, Stream) + Send + Sync + 'static>>,
+    on_stream_has_audio_changed:
+        Option<Box<dyn Fn(&Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_has_video_changed:
+        Option<Box<dyn Fn(&Session, Stream, bool) + Send + Sync + 'static>>,
     on_stream_video_dimensions_changed:
-        Option<Box<dyn Fn(Session, Stream, i32, i32) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, Stream, i32, i32) + Send + Sync + 'static>>,
     on_stream_video_type_changed:
-        Option<Box<dyn Fn(Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
     on_signal_received:
-        Option<Box<dyn Fn(Session, &str, &str, Connection) + Send + Sync + 'static>>,
-    on_archive_started: Option<Box<dyn Fn(Session, &str, &str) + Send + Sync + 'static>>,
-    on_archive_stopped: Option<Box<dyn Fn(Session, &str) + Send + Sync + 'static>>,
-    on_error: Option<Box<dyn Fn(Session, &str, SessionError) + Send + Sync + 'static>>,
+        Option<Box<dyn Fn(&Session, &str, &str, Connection) + Send + Sync + 'static>>,
+    on_archive_started: Option<Box<dyn Fn(&Session, &str, &str) + Send + Sync + 'static>>,
+    on_archive_stopped: Option<Box<dyn Fn(&Session, &str) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(&Session, &str, SessionError) + Send + Sync + 'static>>,
 }
 
 impl SessionCallbacksBuilder {
-    callback_setter!(on_connected, Session);
-    callback_setter!(on_reconnection_started, Session);
-    callback_setter!(on_reconnected, Session);
-    callback_setter!(on_disconnected, Session);
-    callback_setter!(on_connection_created, Session, Connection);
-    callback_setter!(on_connection_dropped, Session, Connection);
-    callback_setter!(on_stream_received, Session, Stream);
-    callback_setter!(on_stream_dropped, Session, Stream);
-    callback_setter!(on_stream_has_audio_changed, Session, Stream, bool);
-    callback_setter!(on_stream_has_video_changed, Session, Stream, bool);
+    callback_setter!(on_connected, &Session);
+    callback_setter!(on_reconnection_started, &Session);
+    callback_setter!(on_reconnected, &Session);
+    callback_setter!(on_disconnected, &Session);
+    callback_setter!(on_connection_created, &Session, Connection);
+    callback_setter!(on_connection_dropped, &Session, Connection);
+    callback_setter!(on_stream_received, &Session, Stream);
+    callback_setter!(on_stream_dropped, &Session, Stream);
+    callback_setter!(on_stream_has_audio_changed, &Session, Stream, bool);
+    callback_setter!(on_stream_has_video_changed, &Session, Stream, bool);
     callback_setter!(
         on_stream_video_dimensions_changed,
-        Session,
+        &Session,
         Stream,
         i32,
         i32
     );
     callback_setter!(
         on_stream_video_type_changed,
-        Session,
+        &Session,
         Stream,
         StreamVideoType
     );
-    callback_setter!(on_signal_received, Session, &str, &str, Connection);
-    callback_setter!(on_archive_started, Session, &str, &str);
-    callback_setter!(on_archive_stopped, Session, &str);
-    callback_setter!(on_error, Session, &str, SessionError);
+    callback_setter!(on_signal_received, &Session, &str, &str, Connection);
+    callback_setter!(on_archive_started, &Session, &str, &str);
+    callback_setter!(on_archive_stopped, &Session, &str);
+    callback_setter!(on_error, &Session, &str, SessionError);
 
     pub fn build(self) -> SessionCallbacks {
         SessionCallbacks {
@@ -528,7 +532,7 @@ impl Session {
         }
         let stream = unsafe { ffi::otc_stream_copy(stream) };
         self.callbacks.lock().unwrap().on_stream_has_audio_changed(
-            self.clone(),
+            self,
             (stream as *const ffi::otc_stream).into(),
             *OtcBool(has_audio),
         )
@@ -544,7 +548,7 @@ impl Session {
         }
         let stream = unsafe { ffi::otc_stream_copy(stream) };
         self.callbacks.lock().unwrap().on_stream_has_video_changed(
-            self.clone(),
+            self,
             (stream as *const ffi::otc_stream).into(),
             *OtcBool(has_video),
         )
@@ -563,7 +567,7 @@ impl Session {
         let signal = unsafe { CStr::from_ptr(signal) };
         let connection = unsafe { ffi::otc_connection_copy(connection) };
         self.callbacks.lock().unwrap().on_signal_received(
-            self.clone(),
+            self,
             type_.to_str().unwrap_or_default(),
             signal.to_str().unwrap_or_default(),
             (connection as *const ffi::otc_connection).into(),
@@ -577,7 +581,7 @@ impl Session {
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         let name = unsafe { CStr::from_ptr(name) };
         self.callbacks.lock().unwrap().on_archive_started(
-            self.clone(),
+            self,
             archive_id.to_str().unwrap_or_default(),
             name.to_str().unwrap_or_default(),
         );
@@ -591,7 +595,7 @@ impl Session {
         self.callbacks
             .lock()
             .unwrap()
-            .on_archive_stopped(self.clone(), archive_id.to_str().unwrap_or_default());
+            .on_archive_stopped(self, archive_id.to_str().unwrap_or_default());
     }
 
     fn on_error(&self, error_string: *const c_char, error: ffi::otc_session_error_code) {
@@ -600,7 +604,7 @@ impl Session {
         }
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks.lock().unwrap().on_error(
-            self.clone(),
+            self,
             error_string.to_str().unwrap_or_default(),
             error.into(),
         );

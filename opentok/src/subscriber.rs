@@ -143,19 +143,19 @@ ffi_callback!(
 
 #[allow(clippy::type_complexity)]
 pub struct SubscriberCallbacks {
-    on_connected: Option<Box<dyn Fn(Subscriber, Stream) + Send + Sync + 'static>>,
-    on_disconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_reconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame) + Send + Sync + 'static>>,
-    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
-    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
-    on_audio_disabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_audio_enabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_data_received: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_disable_warning: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32) + Send + Sync + 'static>>,
-    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
+    on_connected: Option<Box<dyn Fn(&Subscriber, Stream) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(&Subscriber, VideoFrame) + Send + Sync + 'static>>,
+    on_video_disabled: Option<Box<dyn Fn(&Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_video_enabled: Option<Box<dyn Fn(&Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_audio_disabled: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_audio_enabled: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_data_received: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning_lifted: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(&Subscriber, f32) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(&Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
 }
 
 impl SubscriberCallbacks {
@@ -163,53 +163,53 @@ impl SubscriberCallbacks {
         SubscriberCallbacksBuilder::default()
     }
 
-    callback!(on_connected, Subscriber, Stream);
-    callback!(on_disconnected, Subscriber);
-    callback!(on_reconnected, Subscriber);
-    callback!(on_render_frame, Subscriber, VideoFrame);
-    callback!(on_video_disabled, Subscriber, VideoReason);
-    callback!(on_video_enabled, Subscriber, VideoReason);
-    callback!(on_audio_disabled, Subscriber);
-    callback!(on_audio_enabled, Subscriber);
-    callback!(on_video_data_received, Subscriber);
-    callback!(on_video_disable_warning, Subscriber);
-    callback!(on_video_disable_warning_lifted, Subscriber);
-    callback!(on_audio_level_updated, Subscriber, f32);
-    callback!(on_error, Subscriber, &str, SubscriberError);
+    callback!(on_connected, &Subscriber, Stream);
+    callback!(on_disconnected, &Subscriber);
+    callback!(on_reconnected, &Subscriber);
+    callback!(on_render_frame, &Subscriber, VideoFrame);
+    callback!(on_video_disabled, &Subscriber, VideoReason);
+    callback!(on_video_enabled, &Subscriber, VideoReason);
+    callback!(on_audio_disabled, &Subscriber);
+    callback!(on_audio_enabled, &Subscriber);
+    callback!(on_video_data_received, &Subscriber);
+    callback!(on_video_disable_warning, &Subscriber);
+    callback!(on_video_disable_warning_lifted, &Subscriber);
+    callback!(on_audio_level_updated, &Subscriber, f32);
+    callback!(on_error, &Subscriber, &str, SubscriberError);
 }
 
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct SubscriberCallbacksBuilder {
-    on_connected: Option<Box<dyn Fn(Subscriber, Stream) + Send + Sync + 'static>>,
-    on_disconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_reconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame) + Send + Sync + 'static>>,
-    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
-    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
-    on_audio_disabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_audio_enabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_data_received: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_disable_warning: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32) + Send + Sync + 'static>>,
-    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
+    on_connected: Option<Box<dyn Fn(&Subscriber, Stream) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(&Subscriber, VideoFrame) + Send + Sync + 'static>>,
+    on_video_disabled: Option<Box<dyn Fn(&Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_video_enabled: Option<Box<dyn Fn(&Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_audio_disabled: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_audio_enabled: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_data_received: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning_lifted: Option<Box<dyn Fn(&Subscriber) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(&Subscriber, f32) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(&Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
 }
 
 impl SubscriberCallbacksBuilder {
-    callback_setter!(on_connected, Subscriber, Stream);
-    callback_setter!(on_disconnected, Subscriber);
-    callback_setter!(on_reconnected, Subscriber);
-    callback_setter!(on_render_frame, Subscriber, VideoFrame);
-    callback_setter!(on_video_disabled, Subscriber, VideoReason);
-    callback_setter!(on_video_enabled, Subscriber, VideoReason);
-    callback_setter!(on_audio_disabled, Subscriber);
-    callback_setter!(on_audio_enabled, Subscriber);
-    callback_setter!(on_video_data_received, Subscriber);
-    callback_setter!(on_video_disable_warning, Subscriber);
-    callback_setter!(on_video_disable_warning_lifted, Subscriber);
-    callback_setter!(on_audio_level_updated, Subscriber, f32);
-    callback_setter!(on_error, Subscriber, &str, SubscriberError);
+    callback_setter!(on_connected, &Subscriber, Stream);
+    callback_setter!(on_disconnected, &Subscriber);
+    callback_setter!(on_reconnected, &Subscriber);
+    callback_setter!(on_render_frame, &Subscriber, VideoFrame);
+    callback_setter!(on_video_disabled, &Subscriber, VideoReason);
+    callback_setter!(on_video_enabled, &Subscriber, VideoReason);
+    callback_setter!(on_audio_disabled, &Subscriber);
+    callback_setter!(on_audio_enabled, &Subscriber);
+    callback_setter!(on_video_data_received, &Subscriber);
+    callback_setter!(on_video_disable_warning, &Subscriber);
+    callback_setter!(on_video_disable_warning_lifted, &Subscriber);
+    callback_setter!(on_audio_level_updated, &Subscriber, f32);
+    callback_setter!(on_error, &Subscriber, &str, SubscriberError);
 
     pub fn build(self) -> SubscriberCallbacks {
         SubscriberCallbacks {
@@ -296,7 +296,7 @@ impl Subscriber {
         }
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks.lock().unwrap().on_error(
-            self.clone(),
+            self,
             error_string.to_str().unwrap_or_default(),
             error_code.into(),
         );

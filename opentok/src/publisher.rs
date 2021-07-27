@@ -144,13 +144,13 @@ ffi_callback!(
 /// is released after the callback finishes its execution.
 #[allow(clippy::type_complexity)]
 pub struct PublisherCallbacks {
-    on_stream_created: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
-    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
-    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame) + Send + Sync + 'static>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32) + Send + Sync + 'static>>,
-    //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
-    //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
-    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError) + Send + Sync + 'static>>,
+    on_stream_created: Option<Box<dyn Fn(&Publisher, Stream) + Send + Sync + 'static>>,
+    on_stream_destroyed: Option<Box<dyn Fn(&Publisher, Stream) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(&Publisher, VideoFrame) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(&Publisher, f32) + Send + Sync + 'static>>,
+    //TODO: on_audio_stats: Option<Box<dyn Fn(&Publisher, AudioStats)>>,
+    //TODO: on_video_stats: Option<Box<dyn Fn(&Publisher, VideoStats)>>,
+    on_error: Option<Box<dyn Fn(&Publisher, &str, PublisherError) + Send + Sync + 'static>>,
 }
 
 impl PublisherCallbacks {
@@ -158,31 +158,31 @@ impl PublisherCallbacks {
         PublisherCallbacksBuilder::default()
     }
 
-    callback!(on_stream_created, Publisher, Stream);
-    callback!(on_stream_destroyed, Publisher, Stream);
-    callback!(on_render_frame, Publisher, VideoFrame);
-    callback!(on_audio_level_updated, Publisher, f32);
-    callback!(on_error, Publisher, &str, PublisherError);
+    callback!(on_stream_created, &Publisher, Stream);
+    callback!(on_stream_destroyed, &Publisher, Stream);
+    callback!(on_render_frame, &Publisher, VideoFrame);
+    callback!(on_audio_level_updated, &Publisher, f32);
+    callback!(on_error, &Publisher, &str, PublisherError);
 }
 
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct PublisherCallbacksBuilder {
-    on_stream_created: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
-    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
-    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame) + Send + Sync + 'static>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32) + Send + Sync + 'static>>,
-    //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
-    //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
-    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError) + Send + Sync + 'static>>,
+    on_stream_created: Option<Box<dyn Fn(&Publisher, Stream) + Send + Sync + 'static>>,
+    on_stream_destroyed: Option<Box<dyn Fn(&Publisher, Stream) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(&Publisher, VideoFrame) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(&Publisher, f32) + Send + Sync + 'static>>,
+    //TODO: on_audio_stats: Option<Box<dyn Fn(&Publisher, AudioStats)>>,
+    //TODO: on_video_stats: Option<Box<dyn Fn(&Publisher, VideoStats)>>,
+    on_error: Option<Box<dyn Fn(&Publisher, &str, PublisherError) + Send + Sync + 'static>>,
 }
 
 impl PublisherCallbacksBuilder {
-    callback_setter!(on_stream_created, Publisher, Stream);
-    callback_setter!(on_stream_destroyed, Publisher, Stream);
-    callback_setter!(on_render_frame, Publisher, VideoFrame);
-    callback_setter!(on_audio_level_updated, Publisher, f32);
-    callback_setter!(on_error, Publisher, &str, PublisherError);
+    callback_setter!(on_stream_created, &Publisher, Stream);
+    callback_setter!(on_stream_destroyed, &Publisher, Stream);
+    callback_setter!(on_render_frame, &Publisher, VideoFrame);
+    callback_setter!(on_audio_level_updated, &Publisher, f32);
+    callback_setter!(on_error, &Publisher, &str, PublisherError);
 
     pub fn build(self) -> PublisherCallbacks {
         PublisherCallbacks {
@@ -260,7 +260,7 @@ impl Publisher {
         }
         let error_string = unsafe { CStr::from_ptr(error_string) };
         self.callbacks.lock().unwrap().on_error(
-            self.clone(),
+            self,
             error_string.to_str().unwrap_or_default(),
             error_code.into(),
         );
