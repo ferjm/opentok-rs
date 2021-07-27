@@ -2,7 +2,7 @@ use crate::stream::Stream;
 use crate::video_capturer::VideoCapturer;
 use crate::video_frame::VideoFrame;
 
-use once_cell::unsync::OnceCell;
+use once_cell::sync::OnceCell;
 use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
@@ -144,13 +144,13 @@ ffi_callback!(
 /// is released after the callback finishes its execution.
 #[allow(clippy::type_complexity)]
 pub struct PublisherCallbacks {
-    on_stream_created: Option<Box<dyn Fn(Publisher, Stream)>>,
-    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream)>>,
-    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame)>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32)>>,
+    on_stream_created: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
+    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32) + Send + Sync + 'static>>,
     //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
     //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
-    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError)>>,
+    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError) + Send + Sync + 'static>>,
 }
 
 impl PublisherCallbacks {
@@ -168,13 +168,13 @@ impl PublisherCallbacks {
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct PublisherCallbacksBuilder {
-    on_stream_created: Option<Box<dyn Fn(Publisher, Stream)>>,
-    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream)>>,
-    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame)>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32)>>,
+    on_stream_created: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
+    on_stream_destroyed: Option<Box<dyn Fn(Publisher, Stream) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(Publisher, VideoFrame) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Publisher, f32) + Send + Sync + 'static>>,
     //TODO: on_audio_stats: Option<Box<dyn Fn(Publisher, AudioStats)>>,
     //TODO: on_video_stats: Option<Box<dyn Fn(Publisher, VideoStats)>>,
-    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError)>>,
+    on_error: Option<Box<dyn Fn(Publisher, &str, PublisherError) + Send + Sync + 'static>>,
 }
 
 impl PublisherCallbacksBuilder {
@@ -202,6 +202,9 @@ pub struct Publisher {
     callbacks: Arc<Mutex<PublisherCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_publisher_callbacks>,
 }
+
+unsafe impl Sync for Publisher {}
+unsafe impl Send for Publisher {}
 
 impl Publisher {
     pub fn new(name: &str, capturer: Option<VideoCapturer>, callbacks: PublisherCallbacks) -> Self {

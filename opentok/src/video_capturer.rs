@@ -1,7 +1,7 @@
 use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::video_frame::{FrameFormat, VideoFrame};
 
-use once_cell::unsync::OnceCell;
+use once_cell::sync::OnceCell;
 use std::os::raw::c_void;
 use std::sync::{Arc, Mutex};
 
@@ -73,10 +73,10 @@ ffi_callback_with_return!(
 
 #[derive(Default)]
 pub struct VideoCapturerCallbacks {
-    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
 }
 
 impl VideoCapturerCallbacks {
@@ -92,10 +92,10 @@ impl VideoCapturerCallbacks {
 
 #[derive(Default)]
 pub struct VideoCapturerCallbacksBuilder {
-    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
-    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult>>,
+    init: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    destroy: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    start: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    stop: Option<Box<dyn Fn(VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
 }
 
 impl VideoCapturerCallbacksBuilder {
@@ -149,15 +149,17 @@ impl VideoCapturer {
     }
 
     fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
-        match self.ptr.get() {
-            Some(ptr) => unsafe { ffi::otc_video_capturer_provide_frame(*ptr, rotation, **frame) }
-                .into_result(),
-            None => Err(OtcError::NullError),
+        let ptr = self.ptr.get().unwrap();
+        if ptr.is_null() {
+            return Err(OtcError::NullError);
         }
+        unsafe { ffi::otc_video_capturer_provide_frame(*ptr, rotation, **frame) }.into_result()
     }
 
     fn init(&self, capturer: *const ffi::otc_video_capturer) -> OtcResult {
-        let _ = self.ptr.set(capturer);
+        self.ptr.set(capturer).map_err(|_| {
+            OtcError::Initialization("video_capturer", "Could not set video capturer")
+        })?;
         self.callbacks.lock().unwrap().init(self.clone())
     }
 

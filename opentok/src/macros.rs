@@ -125,7 +125,7 @@ macro_rules! callback_with_return {
 
 macro_rules! callback_setter {
     ($fn_name:ident, $target:ty) => {
-        pub fn $fn_name<F: Fn($target) + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target) + Send + Sync + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -133,7 +133,7 @@ macro_rules! callback_setter {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1) + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target, $ty1) + Send + Sync + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -141,7 +141,10 @@ macro_rules! callback_setter {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2) + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2) + 'static + Send + Sync + 'static>(
+            self,
+            callback: F,
+        ) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -149,7 +152,10 @@ macro_rules! callback_setter {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3) + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3) + Send + Sync + 'static>(
+            self,
+            callback: F,
+        ) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -157,7 +163,7 @@ macro_rules! callback_setter {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty, $t4:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3, $t4) + 'static>(
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3, $t4) + Send + Sync + 'static>(
             self,
             callback: F,
         ) -> Self {
@@ -171,7 +177,7 @@ macro_rules! callback_setter {
 
 macro_rules! callback_setter_with_return {
     ($fn_name:ident, $target:ty, $ret:ty) => {
-        pub fn $fn_name<F: Fn($target) -> $ret + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target) -> $ret + Send + Sync + 'static>(self, callback: F) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -179,7 +185,10 @@ macro_rules! callback_setter_with_return {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ret:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1) -> $ret + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target, $ty1) -> $ret + Send + Sync + 'static>(
+            self,
+            callback: F,
+        ) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -187,7 +196,10 @@ macro_rules! callback_setter_with_return {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ret:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2) -> $ret + 'static>(self, callback: F) -> Self {
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2) -> $ret + Send + Sync + 'static>(
+            self,
+            callback: F,
+        ) -> Self {
             Self {
                 $fn_name: Some(Box::new(callback)),
                 ..self
@@ -195,7 +207,7 @@ macro_rules! callback_setter_with_return {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty, $ret:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3) -> $ret + 'static>(
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3) -> $ret + Send + Sync + 'static>(
             self,
             callback: F,
         ) -> Self {
@@ -206,7 +218,7 @@ macro_rules! callback_setter_with_return {
         }
     };
     ($fn_name:ident, $target:ty, $ty1:ty, $ty2:ty, $ty3:ty, $t4:ty, $ret:ty) => {
-        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3, $t4) -> $ret + 'static>(
+        pub fn $fn_name<F: Fn($target, $ty1, $ty2, $ty3, $t4) -> $ret + Send + Sync + 'static>(
             self,
             callback: F,
         ) -> Self {

@@ -2,7 +2,7 @@ use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::stream::Stream;
 use crate::video_frame::VideoFrame;
 
-use once_cell::unsync::OnceCell;
+use once_cell::sync::OnceCell;
 use std::ffi::CStr;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
@@ -143,19 +143,19 @@ ffi_callback!(
 
 #[allow(clippy::type_complexity)]
 pub struct SubscriberCallbacks {
-    on_connected: Option<Box<dyn Fn(Subscriber, Stream)>>,
-    on_disconnected: Option<Box<dyn Fn(Subscriber)>>,
-    on_reconnected: Option<Box<dyn Fn(Subscriber)>>,
-    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame)>>,
-    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason)>>,
-    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason)>>,
-    on_audio_disabled: Option<Box<dyn Fn(Subscriber)>>,
-    on_audio_enabled: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_data_received: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_disable_warning: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber)>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32)>>,
-    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError)>>,
+    on_connected: Option<Box<dyn Fn(Subscriber, Stream) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame) + Send + Sync + 'static>>,
+    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_audio_disabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_audio_enabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_data_received: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
 }
 
 impl SubscriberCallbacks {
@@ -181,19 +181,19 @@ impl SubscriberCallbacks {
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct SubscriberCallbacksBuilder {
-    on_connected: Option<Box<dyn Fn(Subscriber, Stream)>>,
-    on_disconnected: Option<Box<dyn Fn(Subscriber)>>,
-    on_reconnected: Option<Box<dyn Fn(Subscriber)>>,
-    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame)>>,
-    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason)>>,
-    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason)>>,
-    on_audio_disabled: Option<Box<dyn Fn(Subscriber)>>,
-    on_audio_enabled: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_data_received: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_disable_warning: Option<Box<dyn Fn(Subscriber)>>,
-    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber)>>,
-    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32)>>,
-    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError)>>,
+    on_connected: Option<Box<dyn Fn(Subscriber, Stream) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_render_frame: Option<Box<dyn Fn(Subscriber, VideoFrame) + Send + Sync + 'static>>,
+    on_video_disabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_video_enabled: Option<Box<dyn Fn(Subscriber, VideoReason) + Send + Sync + 'static>>,
+    on_audio_disabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_audio_enabled: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_data_received: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_video_disable_warning_lifted: Option<Box<dyn Fn(Subscriber) + Send + Sync + 'static>>,
+    on_audio_level_updated: Option<Box<dyn Fn(Subscriber, f32) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(Subscriber, &str, SubscriberError) + Send + Sync + 'static>>,
 }
 
 impl SubscriberCallbacksBuilder {
@@ -237,6 +237,9 @@ pub struct Subscriber {
     ffi_callbacks: OnceCell<ffi::otc_subscriber_callbacks>,
     stream: OnceCell<Stream>,
 }
+
+unsafe impl Send for Subscriber {}
+unsafe impl Sync for Subscriber {}
 
 impl Subscriber {
     pub fn new(callbacks: SubscriberCallbacks) -> Self {
@@ -313,9 +316,9 @@ impl Subscriber {
         }
         assert!(self.ptr.get().is_none());
         assert!(self.ffi_callbacks.get().is_some());
-        let _ = self
-            .ptr
-            .set(unsafe { ffi::otc_subscriber_new(*stream, self.ffi_callbacks.get().unwrap()) });
+        self.ptr
+            .set(unsafe { ffi::otc_subscriber_new(*stream, self.ffi_callbacks.get().unwrap()) })
+            .map_err(|_| OtcError::Initialization("subscriber", "Could not set stream"))?;
         Ok(())
     }
 

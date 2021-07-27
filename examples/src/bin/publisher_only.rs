@@ -4,7 +4,7 @@ use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use std::env;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -29,11 +29,11 @@ fn main() {
             println!("on_error {:?}", error);
         })
         .build();
-    let _publisher = Arc::new(Publisher::new(
+    let _publisher = Arc::new(Mutex::new(Publisher::new(
         "basic_video_chat",
         None,
         publisher_callbacks,
-    ));
+    )));
 
     let session_callbacks = SessionCallbacks::builder()
         .on_connection_created(|_, _| {
@@ -41,7 +41,7 @@ fn main() {
         })
         .on_connected(move |session| {
             println!("on_connected");
-            let _ = session.publish(&*_publisher);
+            let _ = session.publish(&*_publisher.lock().unwrap());
         })
         .on_disconnected(|_| {
             println!("on_disconnected");

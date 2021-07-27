@@ -208,22 +208,25 @@ ffi_callback!(
 
 #[allow(clippy::type_complexity)]
 pub struct SessionCallbacks {
-    on_connected: Option<Box<dyn Fn(Session)>>,
-    on_reconnection_started: Option<Box<dyn Fn(Session)>>,
-    on_reconnected: Option<Box<dyn Fn(Session)>>,
-    on_disconnected: Option<Box<dyn Fn(Session)>>,
-    on_connection_created: Option<Box<dyn Fn(Session, Connection)>>,
-    on_connection_dropped: Option<Box<dyn Fn(Session, Connection)>>,
-    on_stream_received: Option<Box<dyn Fn(Session, Stream)>>,
-    on_stream_dropped: Option<Box<dyn Fn(Session, Stream)>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool)>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool)>>,
-    on_stream_video_dimensions_changed: Option<Box<dyn Fn(Session, Stream, i32, i32)>>,
-    on_stream_video_type_changed: Option<Box<dyn Fn(Session, Stream, StreamVideoType)>>,
-    on_signal_received: Option<Box<dyn Fn(Session, &str, &str, Connection)>>,
-    on_archive_started: Option<Box<dyn Fn(Session, &str, &str)>>,
-    on_archive_stopped: Option<Box<dyn Fn(Session, &str)>>,
-    on_error: Option<Box<dyn Fn(Session, &str, SessionError)>>,
+    on_connected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_reconnection_started: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_connection_created: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
+    on_connection_dropped: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
+    on_stream_received: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
+    on_stream_dropped: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
+    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_video_dimensions_changed:
+        Option<Box<dyn Fn(Session, Stream, i32, i32) + Send + Sync + 'static>>,
+    on_stream_video_type_changed:
+        Option<Box<dyn Fn(Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
+    on_signal_received:
+        Option<Box<dyn Fn(Session, &str, &str, Connection) + Send + Sync + 'static>>,
+    on_archive_started: Option<Box<dyn Fn(Session, &str, &str) + Send + Sync + 'static>>,
+    on_archive_stopped: Option<Box<dyn Fn(Session, &str) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(Session, &str, SessionError) + Send + Sync + 'static>>,
 }
 
 impl SessionCallbacks {
@@ -300,22 +303,25 @@ impl SessionCallbacks {
 #[derive(Default)]
 #[allow(clippy::type_complexity)]
 pub struct SessionCallbacksBuilder {
-    on_connected: Option<Box<dyn Fn(Session)>>,
-    on_reconnection_started: Option<Box<dyn Fn(Session)>>,
-    on_reconnected: Option<Box<dyn Fn(Session)>>,
-    on_disconnected: Option<Box<dyn Fn(Session)>>,
-    on_connection_created: Option<Box<dyn Fn(Session, Connection)>>,
-    on_connection_dropped: Option<Box<dyn Fn(Session, Connection)>>,
-    on_stream_received: Option<Box<dyn Fn(Session, Stream)>>,
-    on_stream_dropped: Option<Box<dyn Fn(Session, Stream)>>,
-    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool)>>,
-    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool)>>,
-    on_stream_video_dimensions_changed: Option<Box<dyn Fn(Session, Stream, i32, i32)>>,
-    on_stream_video_type_changed: Option<Box<dyn Fn(Session, Stream, StreamVideoType)>>,
-    on_signal_received: Option<Box<dyn Fn(Session, &str, &str, Connection)>>,
-    on_archive_started: Option<Box<dyn Fn(Session, &str, &str)>>,
-    on_archive_stopped: Option<Box<dyn Fn(Session, &str)>>,
-    on_error: Option<Box<dyn Fn(Session, &str, SessionError)>>,
+    on_connected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_reconnection_started: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_reconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_disconnected: Option<Box<dyn Fn(Session) + Send + Sync + 'static>>,
+    on_connection_created: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
+    on_connection_dropped: Option<Box<dyn Fn(Session, Connection) + Send + Sync + 'static>>,
+    on_stream_received: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
+    on_stream_dropped: Option<Box<dyn Fn(Session, Stream) + Send + Sync + 'static>>,
+    on_stream_has_audio_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_has_video_changed: Option<Box<dyn Fn(Session, Stream, bool) + Send + Sync + 'static>>,
+    on_stream_video_dimensions_changed:
+        Option<Box<dyn Fn(Session, Stream, i32, i32) + Send + Sync + 'static>>,
+    on_stream_video_type_changed:
+        Option<Box<dyn Fn(Session, Stream, StreamVideoType) + Send + Sync + 'static>>,
+    on_signal_received:
+        Option<Box<dyn Fn(Session, &str, &str, Connection) + Send + Sync + 'static>>,
+    on_archive_started: Option<Box<dyn Fn(Session, &str, &str) + Send + Sync + 'static>>,
+    on_archive_stopped: Option<Box<dyn Fn(Session, &str) + Send + Sync + 'static>>,
+    on_error: Option<Box<dyn Fn(Session, &str, SessionError) + Send + Sync + 'static>>,
 }
 
 impl SessionCallbacksBuilder {
@@ -375,6 +381,9 @@ pub struct Session {
     callbacks: Arc<Mutex<SessionCallbacks>>,
     ffi_callbacks: OnceCell<ffi::otc_session_callbacks>,
 }
+
+unsafe impl Send for Session {}
+unsafe impl Sync for Session {}
 
 impl Session {
     /// Creates a new OpenTok session.

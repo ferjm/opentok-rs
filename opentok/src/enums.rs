@@ -44,6 +44,9 @@ pub enum OtcError {
     /// Double initilization error.
     #[error("{0} has already been initialized")]
     AlreadyInitialized(&'static str),
+    /// Initialization error.
+    #[error("Could not initialize {0}: {1}")]
+    Initialization(&'static str, &'static str),
     /// Unknown error
     #[doc(hidden)]
     #[error("Unknown error. Life is hard sometimes")]
