@@ -2,11 +2,17 @@ use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::stream::Stream;
 use crate::video_frame::VideoFrame;
 
+use lazy_static::lazy_static;
 use once_cell::sync::OnceCell;
+use std::collections::HashMap;
 use std::ffi::CStr;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
+
+lazy_static! {
+    static ref INSTANCES: Arc<Mutex<HashMap<usize, Subscriber>>> = Default::default();
+}
 
 /// All possible Subscriber errors.
 pub enum SubscriberError {
@@ -232,9 +238,8 @@ impl SubscriberCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Subscriber {
-    ptr: OnceCell<*const ffi::otc_subscriber>,
+    ptr: OnceCell<*mut ffi::otc_subscriber>,
     callbacks: Arc<Mutex<SubscriberCallbacks>>,
-    ffi_callbacks: OnceCell<ffi::otc_subscriber_callbacks>,
     stream: OnceCell<Stream>,
 }
 
@@ -243,34 +248,11 @@ unsafe impl Sync for Subscriber {}
 
 impl Subscriber {
     pub fn new(callbacks: SubscriberCallbacks) -> Self {
-        let mut subscriber = Self {
+        Self {
             ptr: Default::default(),
             callbacks: Arc::new(Mutex::new(callbacks)),
-            ffi_callbacks: Default::default(),
             stream: Default::default(),
-        };
-        let subscriber_ptr: *mut c_void = &mut subscriber as *mut _ as *mut c_void;
-        let ffi_callbacks = ffi::otc_subscriber_callbacks {
-            on_connected: Some(on_connected),
-            on_disconnected: Some(on_disconnected),
-            on_reconnected: Some(on_reconnected),
-            on_render_frame: Some(on_render_frame),
-            on_video_disabled: Some(on_video_disabled),
-            on_video_enabled: Some(on_video_enabled),
-            on_audio_disabled: Some(on_audio_disabled),
-            on_audio_enabled: Some(on_audio_enabled),
-            on_video_data_received: Some(on_video_data_received),
-            on_video_disable_warning: Some(on_video_disable_warning),
-            on_video_disable_warning_lifted: Some(on_video_disable_warning_lifted),
-            on_audio_level_updated: Some(on_audio_level_updated),
-            on_error: Some(on_error),
-            on_audio_stats: None, // TODO
-            on_video_stats: None, // TODO
-            user_data: subscriber_ptr,
-            reserved: std::ptr::null_mut(),
-        };
-        let _ = subscriber.ffi_callbacks.set(ffi_callbacks);
-        subscriber
+        }
     }
 
     callback_call_with_copy!(on_connected, *const ffi::otc_stream, ffi::otc_stream_copy);
@@ -314,11 +296,31 @@ impl Subscriber {
         if self.stream.get().is_some() {
             return Err(OtcError::AlreadyInitialized("stream"));
         }
+        let ffi_callbacks = ffi::otc_subscriber_callbacks {
+            on_connected: Some(on_connected),
+            on_disconnected: Some(on_disconnected),
+            on_reconnected: Some(on_reconnected),
+            on_render_frame: Some(on_render_frame),
+            on_video_disabled: Some(on_video_disabled),
+            on_video_enabled: Some(on_video_enabled),
+            on_audio_disabled: Some(on_audio_disabled),
+            on_audio_enabled: Some(on_audio_enabled),
+            on_video_data_received: Some(on_video_data_received),
+            on_video_disable_warning: Some(on_video_disable_warning),
+            on_video_disable_warning_lifted: Some(on_video_disable_warning_lifted),
+            on_audio_level_updated: Some(on_audio_level_updated),
+            on_error: Some(on_error),
+            on_audio_stats: None, // TODO
+            on_video_stats: None, // TODO
+            user_data: std::ptr::null_mut(),
+            reserved: std::ptr::null_mut(),
+        };
         assert!(self.ptr.get().is_none());
-        assert!(self.ffi_callbacks.get().is_some());
+        let ptr = unsafe { ffi::otc_subscriber_new(*stream, &ffi_callbacks) };
         self.ptr
-            .set(unsafe { ffi::otc_subscriber_new(*stream, self.ffi_callbacks.get().unwrap()) })
+            .set(ptr)
             .map_err(|_| OtcError::Initialization("subscriber", "Could not set stream"))?;
+        INSTANCES.lock().unwrap().insert(ptr as usize, self.clone());
         Ok(())
     }
 
@@ -441,7 +443,7 @@ impl Subscriber {
 }
 
 impl Deref for Subscriber {
-    type Target = *const ffi::otc_subscriber;
+    type Target = *mut ffi::otc_subscriber;
 
     fn deref(&self) -> &Self::Target {
         self.ptr.get().unwrap()

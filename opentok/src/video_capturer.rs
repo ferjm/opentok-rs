@@ -1,9 +1,15 @@
 use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::video_frame::{FrameFormat, VideoFrame};
 
+use lazy_static::lazy_static;
 use once_cell::sync::OnceCell;
+use std::collections::HashMap;
 use std::os::raw::c_void;
 use std::sync::{Arc, Mutex};
+
+lazy_static! {
+    static ref INSTANCES: Arc<Mutex<HashMap<usize, VideoCapturer>>> = Default::default();
+}
 
 /// Settings for a VideoCapturer.
 #[derive(Clone)]
@@ -38,38 +44,28 @@ impl Default for VideoCapturerSettings {
 
 unsafe extern "C" fn init(
     capturer: *const ffi::otc_video_capturer,
-    data: *mut c_void,
+    _: *mut c_void,
 ) -> ffi::otc_bool {
-    let target = data as *mut VideoCapturer;
-    let result: OtcBool = (*target).init(capturer).into();
+    let result: OtcBool = INSTANCES
+        .lock()
+        .unwrap()
+        .get(&(capturer as usize))
+        .unwrap()
+        .init(capturer)
+        .into();
     result.0
 }
 
-ffi_callback_with_return!(
-    destroy,
-    *const ffi::otc_video_capturer,
-    VideoCapturer,
-    ffi::otc_bool
-);
-ffi_callback_with_return!(
-    start,
-    *const ffi::otc_video_capturer,
-    VideoCapturer,
-    ffi::otc_bool
-);
-ffi_callback_with_return!(
-    stop,
-    *const ffi::otc_video_capturer,
-    VideoCapturer,
-    ffi::otc_bool
-);
+ffi_callback_with_return!(destroy, *const ffi::otc_video_capturer, ffi::otc_bool);
+ffi_callback_with_return!(start, *const ffi::otc_video_capturer, ffi::otc_bool);
+ffi_callback_with_return!(stop, *const ffi::otc_video_capturer, ffi::otc_bool);
+/*
 ffi_callback_with_return!(
     get_capture_settings,
     *const ffi::otc_video_capturer,
-    VideoCapturer,
     *mut ffi::otc_video_capturer_settings,
     ffi::otc_bool
-);
+);*/
 
 #[derive(Default)]
 pub struct VideoCapturerCallbacks {
@@ -119,33 +115,30 @@ pub struct VideoCapturer {
     ptr: OnceCell<*const ffi::otc_video_capturer>,
     settings: VideoCapturerSettings,
     callbacks: Arc<Mutex<VideoCapturerCallbacks>>,
-    ffi_callbacks: OnceCell<ffi::otc_video_capturer_callbacks>,
 }
+
+unsafe impl Send for VideoCapturer {}
+unsafe impl Sync for VideoCapturer {}
 
 impl VideoCapturer {
     pub fn new(settings: VideoCapturerSettings, callbacks: VideoCapturerCallbacks) -> Self {
-        let mut capturer = Self {
+        Self {
             ptr: Default::default(),
             settings,
             callbacks: Arc::new(Mutex::new(callbacks)),
-            ffi_callbacks: Default::default(),
-        };
-        let capturer_ptr: *mut c_void = &mut capturer as *mut _ as *mut c_void;
-        let ffi_callbacks = ffi::otc_video_capturer_callbacks {
+        }
+    }
+
+    pub fn callbacks(&self) -> ffi::otc_video_capturer_callbacks {
+        ffi::otc_video_capturer_callbacks {
             init: Some(init),
             destroy: Some(destroy),
             start: Some(start),
             stop: Some(stop),
-            get_capture_settings: Some(get_capture_settings),
-            user_data: capturer_ptr,
+            get_capture_settings: None, //Some(get_capture_settings),
+            user_data: std::ptr::null_mut(),
             reserved: std::ptr::null_mut(),
-        };
-        let _ = capturer.ffi_callbacks.set(ffi_callbacks);
-        capturer
-    }
-
-    pub fn callbacks(&self) -> &ffi::otc_video_capturer_callbacks {
-        self.ffi_callbacks.get().unwrap()
+        }
     }
 
     fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
@@ -160,6 +153,10 @@ impl VideoCapturer {
         self.ptr.set(capturer).map_err(|_| {
             OtcError::Initialization("video_capturer", "Could not set video capturer")
         })?;
+        INSTANCES
+            .lock()
+            .unwrap()
+            .insert(capturer as usize, self.clone());
         self.callbacks.lock().unwrap().init(self)
     }
 

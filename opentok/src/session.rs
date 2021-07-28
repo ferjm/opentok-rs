@@ -4,11 +4,16 @@ use crate::publisher::Publisher;
 use crate::stream::{Stream, StreamVideoType};
 use crate::subscriber::Subscriber;
 
-use once_cell::sync::OnceCell;
+use lazy_static::lazy_static;
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
+
+lazy_static! {
+    static ref INSTANCES: Arc<Mutex<HashMap<usize, Session>>> = Default::default();
+}
 
 /// Errors associated with an OpenTok session.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Error)]
@@ -381,9 +386,8 @@ impl SessionCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Session {
-    ptr: OnceCell<*const ffi::otc_session>,
+    ptr: *mut ffi::otc_session,
     callbacks: Arc<Mutex<SessionCallbacks>>,
-    ffi_callbacks: OnceCell<ffi::otc_session_callbacks>,
 }
 
 unsafe impl Send for Session {}
@@ -401,13 +405,9 @@ impl Session {
         session_id: &str,
         callbacks: SessionCallbacks,
     ) -> Result<Session, OtcError> {
-        let mut session = Session {
-            ptr: Default::default(),
-            callbacks: Arc::new(Mutex::new(callbacks)),
-            ffi_callbacks: Default::default(),
-        };
-
-        let session_ptr: *mut c_void = &mut session as *mut _ as *mut c_void;
+        let api_key = CString::new(api_key).map_err(|_| OtcError::InvalidParam("api_key"))?;
+        let session_id =
+            CString::new(session_id).map_err(|_| OtcError::InvalidParam("session_id"))?;
         let ffi_callbacks = ffi::otc_session_callbacks {
             on_connected: Some(on_connected),
             on_reconnection_started: Some(on_reconnection_started),
@@ -425,25 +425,22 @@ impl Session {
             on_archive_started: Some(on_archive_started),
             on_archive_stopped: Some(on_archive_stopped),
             on_error: Some(on_error),
-            user_data: session_ptr,
+            user_data: std::ptr::null_mut(),
             reserved: std::ptr::null_mut(),
         };
-
-        let api_key = CString::new(api_key).map_err(|_| OtcError::InvalidParam("api_key"))?;
-        let session_id =
-            CString::new(session_id).map_err(|_| OtcError::InvalidParam("session_id"))?;
         let session_ptr =
             unsafe { ffi::otc_session_new(api_key.as_ptr(), session_id.as_ptr(), &ffi_callbacks) };
         if session_ptr.is_null() {
-            return Err(OtcError::Fatal);
+            return Err(OtcError::NullError);
         }
-
-        session.ptr.set(session_ptr).map_err(|_| OtcError::Fatal)?;
-        session
-            .ffi_callbacks
-            .set(ffi_callbacks)
-            .map_err(|_| OtcError::Fatal)?;
-
+        let session = Session {
+            ptr: session_ptr,
+            callbacks: Arc::new(Mutex::new(callbacks)),
+        };
+        INSTANCES
+            .lock()
+            .unwrap()
+            .insert(session_ptr as usize, session.clone());
         Ok(session)
     }
 
@@ -452,36 +449,42 @@ impl Session {
     /// * token - The client token for connecting to the session. Check
     /// https://tokbox.com/developer/guides/create-token/
     pub fn connect(&self, token: &str) -> OtcResult {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
         let token = std::ffi::CString::new(token).map_err(|_| OtcError::InvalidParam("token"))?;
-        unsafe { ffi::otc_session_connect(*self.ptr.get().unwrap() as *mut _, token.as_ptr()) }
-            .into_result()
+        unsafe { ffi::otc_session_connect(self.ptr, token.as_ptr()) }.into_result()
     }
 
     /// Disconnects the client from this session. All of the client's subscribers
     /// and publishers will also be will be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
-        unsafe { ffi::otc_session_disconnect(*self.ptr.get().unwrap() as *mut _) }.into_result()
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        unsafe { ffi::otc_session_disconnect(self.ptr) }.into_result()
     }
 
     /// Releases resources associated with the session.
     pub fn delete(&self) -> OtcResult {
-        unsafe { ffi::otc_session_delete(*self.ptr.get().unwrap() as *mut _) }.into_result()
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        unsafe { ffi::otc_session_delete(self.ptr) }.into_result()
     }
 
     pub fn publish(&self, publisher: &Publisher) -> OtcResult {
-        unsafe {
-            ffi::otc_session_publish(*self.ptr.get().unwrap() as *mut _, **publisher as *mut _)
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
         }
-        .into_result()
+        unsafe { ffi::otc_session_publish(self.ptr, **publisher as *mut _) }.into_result()
     }
 
     pub fn subscribe(&self, subscriber: &Subscriber) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_session_subscribe(*ptr as *mut ffi::otc_session, **subscriber as *mut _) }
-            .into_result()
+        unsafe { ffi::otc_session_subscribe(self.ptr, **subscriber as *mut _) }.into_result()
     }
 
     callback_call!(on_connected);

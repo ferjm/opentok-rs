@@ -1,57 +1,83 @@
 macro_rules! ffi_callback {
     ($fn_name:ident, $target_type:ty, $target_rust_type:ty) => {
-        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void) {
-            let target = data as *mut $target_rust_type;
-            let _ = (*target).$fn_name();
+        extern "C" fn $fn_name(target: $target_type, _: *mut c_void) {
+            INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name();
         }
     };
-    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty) => {
-        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void, arg1: $arg1_type) {
-            let target = data as *mut $target_rust_type;
-            let _ = (*target).$fn_name(arg1);
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_ty1:ty) => {
+        unsafe extern "C" fn $fn_name(target: $target_type, _: *mut c_void, arg1: $arg1_ty1) {
+            INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name(arg1.into());
         }
     };
-    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty, $arg2_type:ty) => {
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_ty:ty, $arg2_ty:ty) => {
         unsafe extern "C" fn $fn_name(
-            _: $target_type,
-            data: *mut c_void,
-            arg1: $arg1_type,
-            arg2: $arg2_type,
+            target: $target_type,
+            _: *mut c_void,
+            arg1: $arg1_ty,
+            arg2: $arg2_ty,
         ) {
-            let target = data as *mut $target_rust_type;
-            let _ = (*target).$fn_name(arg1, arg2);
+            INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name(arg1.into(), arg2.into());
         }
     };
-    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty, $arg2_type:ty, $arg3_type:ty) => {
+    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_ty:ty, $arg2_ty:ty, $arg3_ty:ty) => {
         unsafe extern "C" fn $fn_name(
-            _: $target_type,
-            data: *mut c_void,
-            arg1: $arg1_type,
-            arg2: $arg2_type,
-            arg3: $arg3_type,
+            target: $target_type,
+            _: *mut c_void,
+            arg1: $arg1_ty,
+            arg2: $arg2_ty,
+            arg3: $arg3_ty,
         ) {
-            let target = data as *mut $target_rust_type;
-            let _ = (*target).$fn_name(arg1, arg2, arg3);
+            INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name(arg1.into(), arg2.into(), arg3.into());
         }
     };
 }
 
 macro_rules! ffi_callback_with_return {
-    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $return_type:ty) => {
-        unsafe extern "C" fn $fn_name(_: $target_type, data: *mut c_void) -> $return_type {
-            let target = data as *mut $target_rust_type;
-            let result: OtcBool = (*target).$fn_name().into();
+    ($fn_name:ident, $target_type:ty, $return_type:ty) => {
+        unsafe extern "C" fn $fn_name(target: $target_type, _: *mut c_void) -> $return_type {
+            let result: OtcBool = INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name()
+                .into();
             result.0
         }
     };
-    ($fn_name:ident, $target_type:ty, $target_rust_type:ty, $arg1_type:ty, $return_type:ty) => {
+    ($fn_name:ident, $target_type:ty, $arg1_type:ty, $return_type:ty) => {
         unsafe extern "C" fn $fn_name(
-            _: $target_type,
-            data: *mut c_void,
+            target: $target_type,
+            _: *mut c_void,
             arg1: $arg1_type,
         ) -> $return_type {
-            let target = data as *mut $target_rust_type;
-            let result: OtcBool = (*target).$fn_name(arg1).into();
+            let result: OtcBool = INSTANCES
+                .lock()
+                .unwrap()
+                .get(&(target as usize))
+                .unwrap()
+                .$fn_name(arg1)
+                .into();
             result.0
         }
     };

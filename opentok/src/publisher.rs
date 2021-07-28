@@ -2,11 +2,16 @@ use crate::stream::Stream;
 use crate::video_capturer::VideoCapturer;
 use crate::video_frame::VideoFrame;
 
-use once_cell::sync::OnceCell;
+use lazy_static::lazy_static;
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
+
+lazy_static! {
+    static ref INSTANCES: Arc<Mutex<HashMap<usize, Publisher>>> = Default::default();
+}
 
 /// This enumeration represents all the possible error types
 /// associated with a publisher.
@@ -197,10 +202,9 @@ impl PublisherCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Publisher {
-    ptr: OnceCell<*const ffi::otc_publisher>,
+    ptr: *mut ffi::otc_publisher,
     capturer: Option<VideoCapturer>,
     callbacks: Arc<Mutex<PublisherCallbacks>>,
-    ffi_callbacks: OnceCell<ffi::otc_publisher_callbacks>,
 }
 
 unsafe impl Sync for Publisher {}
@@ -210,15 +214,9 @@ impl Publisher {
     pub fn new(name: &str, capturer: Option<VideoCapturer>, callbacks: PublisherCallbacks) -> Self {
         let name = CString::new(name).unwrap_or_default();
         let capturer_callbacks = capturer.clone().map_or(std::ptr::null(), |capturer| {
-            capturer.callbacks() as *const ffi::otc_video_capturer_callbacks
+            &capturer.callbacks() as *const ffi::otc_video_capturer_callbacks
         });
-        let mut publisher = Self {
-            ptr: Default::default(),
-            capturer,
-            callbacks: Arc::new(Mutex::new(callbacks)),
-            ffi_callbacks: Default::default(),
-        };
-        let publisher_ptr: *mut c_void = &mut publisher as *mut _ as *mut c_void;
+
         let ffi_callbacks = ffi::otc_publisher_callbacks {
             on_stream_created: Some(on_stream_created),
             on_stream_destroyed: Some(on_stream_destroyed),
@@ -227,13 +225,20 @@ impl Publisher {
             on_audio_stats: None,
             on_video_stats: None,
             on_error: Some(on_error),
-            user_data: publisher_ptr,
+            user_data: std::ptr::null_mut(),
             reserved: std::ptr::null_mut(),
         };
-        let _ = publisher.ptr.set(unsafe {
-            ffi::otc_publisher_new(name.as_ptr(), capturer_callbacks, &ffi_callbacks)
-        });
-        let _ = publisher.ffi_callbacks.set(ffi_callbacks);
+        let ptr =
+            unsafe { ffi::otc_publisher_new(name.as_ptr(), capturer_callbacks, &ffi_callbacks) };
+        let publisher = Self {
+            ptr,
+            capturer,
+            callbacks: Arc::new(Mutex::new(callbacks)),
+        };
+        INSTANCES
+            .lock()
+            .unwrap()
+            .insert(ptr as usize, publisher.clone());
         publisher
     }
 
@@ -267,18 +272,17 @@ impl Publisher {
     }
 
     pub fn delete(&self) {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.is_null() {
             return;
         }
-        unsafe { ffi::otc_publisher_delete(*ptr as *mut ffi::otc_publisher) };
+        unsafe { ffi::otc_publisher_delete(self.ptr) };
     }
 }
 
 impl Deref for Publisher {
-    type Target = *const ffi::otc_publisher;
+    type Target = *mut ffi::otc_publisher;
 
     fn deref(&self) -> &Self::Target {
-        self.ptr.get().unwrap()
+        &self.ptr
     }
 }
