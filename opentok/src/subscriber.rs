@@ -293,9 +293,10 @@ impl Subscriber {
     }
 
     pub fn set_stream(&self, stream: Stream) -> OtcResult {
-        if self.stream.get().is_some() {
+        if self.stream.get().is_some() || self.stream.set(stream.clone()).is_err() {
             return Err(OtcError::AlreadyInitialized("stream"));
         }
+
         let ffi_callbacks = ffi::otc_subscriber_callbacks {
             on_connected: Some(on_connected),
             on_disconnected: Some(on_disconnected),

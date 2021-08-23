@@ -26,7 +26,6 @@ impl From<ffi::otc_stream_video_type> for StreamVideoType {
     }
 }
 
-#[derive(Clone)]
 pub struct Stream {
     ptr: *const ffi::otc_stream,
 }
@@ -84,6 +83,14 @@ impl Stream {
     /// Get the Connection associated with the client publishing the stream.
     pub fn get_connection(&self) -> Connection {
         unsafe { ffi::otc_stream_get_connection(self.ptr) }.into()
+    }
+}
+
+impl Clone for Stream {
+    fn clone(&self) -> Self {
+        Stream {
+            ptr: unsafe { ffi::otc_stream_copy(self.ptr) },
+        }
     }
 }
 
