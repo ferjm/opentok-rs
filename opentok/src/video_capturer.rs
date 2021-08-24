@@ -44,15 +44,10 @@ impl Default for VideoCapturerSettings {
 
 unsafe extern "C" fn init(
     capturer: *const ffi::otc_video_capturer,
-    _: *mut c_void,
+    data: *mut c_void,
 ) -> ffi::otc_bool {
-    let result: OtcBool = INSTANCES
-        .lock()
-        .unwrap()
-        .get(&(capturer as usize))
-        .unwrap()
-        .init(capturer)
-        .into();
+    let instance = data as *mut VideoCapturer;
+    let result: OtcBool = (*instance).init(capturer).into();
     result.0
 }
 
@@ -130,13 +125,14 @@ impl VideoCapturer {
     }
 
     pub fn callbacks(&self) -> ffi::otc_video_capturer_callbacks {
+        let ptr: *const c_void = &self as *const _ as *const c_void;
         ffi::otc_video_capturer_callbacks {
             init: Some(init),
             destroy: Some(destroy),
             start: Some(start),
             stop: Some(stop),
             get_capture_settings: None, //Some(get_capture_settings),
-            user_data: std::ptr::null_mut(),
+            user_data: ptr as *mut c_void,
             reserved: std::ptr::null_mut(),
         }
     }
