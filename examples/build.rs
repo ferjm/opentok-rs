@@ -8,4 +8,5 @@ fn main() {
             root_dir, sdk_dir
         );
     }
+    println!("cargo:rerun-if-changed=build.rs");
 }
