@@ -3,9 +3,14 @@ extern crate opentok;
 use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
-use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks};
+use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
+use opentok::video_frame::VideoFrame;
 use std::env;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+
+#[path = "../capturer.rs"]
+mod capturer;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -22,20 +27,53 @@ fn main() {
 
     log::enable_log(LogLevel::Error);
 
+    let render_thread_running = Arc::new(AtomicBool::new(false));
+    let render_thread_running_ = render_thread_running.clone();
     let video_capturer_callbacks = VideoCapturerCallbacks::builder()
         .init(|_| {
-            println!("video capturer init");
+            println!("video capturer init callback");
             Ok(())
         })
         .destroy(|_| {
-            println!("video capturer destroy");
+            println!("video capturer destroy callback");
             Ok(())
         })
-        .start(|_| {
+        .start(move |video_capturer| {
             println!("video capturer start");
+            let video_capturer = video_capturer.clone();
+            render_thread_running.store(true, Ordering::Relaxed);
+            let render_thread_running_ = render_thread_running.clone();
+            std::thread::spawn(move || {
+                let settings = VideoCapturerSettings::default();
+                let capturer = capturer::Capturer::new(settings.format).unwrap();
+                let mut buf: Vec<u8> = vec![];
+                let expected_len = (settings.width * settings.height * 4) as usize;
+                loop {
+                    if !render_thread_running_.load(Ordering::Relaxed) {
+                        break;
+                    }
+                    if let Ok(buffer) = capturer.pull_buffer() {
+                        buf.extend_from_slice((*buffer).as_ref());
+                        if buf.len() == expected_len {
+                            let frame = VideoFrame::new(
+                                settings.format,
+                                settings.width,
+                                settings.height,
+                                buf.clone(),
+                            );
+                            video_capturer.provide_frame(0, &frame).unwrap();
+                            buf.clear();
+                        }
+                    }
+                    std::thread::sleep(std::time::Duration::from_micros(30 * 1_000));
+                }
+            });
             Ok(())
         })
-        .stop(|_| Ok(()))
+        .stop(move |_| {
+            render_thread_running_.store(false, Ordering::Relaxed);
+            Ok(())
+        })
         .build();
     let video_capturer = VideoCapturer::new(Default::default(), video_capturer_callbacks);
 

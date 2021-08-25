@@ -1,11 +1,11 @@
 use anyhow::Error;
-use derive_more::{Display, Error};
 use gst::prelude::*;
-use gst_video::VideoFormat;
 use opentok::video_frame::FrameFormat;
 
-#[derive(Debug, Display, Error)]
-struct MissingElement(#[error(not(source))] &'static str);
+#[path = "./common.rs"]
+mod common;
+
+use common::{gst_from_otc_format, MissingElement};
 
 pub struct Renderer {
     pipeline: gst::Pipeline,
@@ -42,7 +42,7 @@ impl Renderer {
         stride: &[i32],
     ) {
         let mut buffer = gst::Buffer::with_size(data.len()).unwrap();
-        let gst_format = Renderer::gst_from_otc_format(format);
+        let gst_format = gst_from_otc_format(format);
         // TODO: Set PTS on buffer
         {
             let buffer = buffer.get_mut().unwrap();
@@ -67,21 +67,6 @@ impl Renderer {
 
         let sample = gst::Sample::builder().caps(&caps).buffer(&buffer).build();
         let _ = appsrc.push_sample(&sample);
-    }
-
-    fn gst_from_otc_format(format: FrameFormat) -> VideoFormat {
-        match format {
-            FrameFormat::Abgr32 => VideoFormat::Abgr,
-            FrameFormat::Argb32 => VideoFormat::Argb,
-            FrameFormat::Bgra32 => VideoFormat::Bgra,
-            FrameFormat::Nv12 => VideoFormat::Nv12,
-            FrameFormat::Nv21 => VideoFormat::Nv21,
-            FrameFormat::Rgba32 => VideoFormat::Rgba,
-            FrameFormat::Uyvy => VideoFormat::Uyvy,
-            FrameFormat::Yuv420P => VideoFormat::I420,
-            FrameFormat::Yuy2 => VideoFormat::Yuy2,
-            _ => unimplemented!(),
-        }
     }
 }
 

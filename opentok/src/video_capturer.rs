@@ -15,18 +15,18 @@ lazy_static! {
 #[derive(Clone)]
 pub struct VideoCapturerSettings {
     /// The pixel format.
-    format: FrameFormat,
+    pub format: FrameFormat,
     /// The width of the video in pixels.
-    width: i32,
+    pub width: i32,
     /// The height of the video in pixels.
-    height: i32,
+    pub height: i32,
     /// The estimated number of frames per second of video.
-    fps: i32,
+    pub fps: i32,
     /// The estimated capture delay, in milliseconds.
-    expected_delay: i32,
+    pub expected_delay: i32,
     /// Whether the frame should appear mirrored on the x-axis
     /// in the local renderer.
-    mirror_on_local_render: bool,
+    pub mirror_on_local_render: bool,
 }
 
 impl Default for VideoCapturerSettings {
@@ -60,13 +60,12 @@ unsafe extern "C" fn init(
 ffi_callback_with_return_user_data!(destroy, *const ffi::otc_video_capturer, ffi::otc_bool);
 ffi_callback_with_return_user_data!(start, *const ffi::otc_video_capturer, ffi::otc_bool);
 ffi_callback_with_return_user_data!(stop, *const ffi::otc_video_capturer, ffi::otc_bool);
-
-/*ffi_callback_with_return!(
+ffi_callback_with_return_user_data!(
     get_capture_settings,
     *const ffi::otc_video_capturer,
     *mut ffi::otc_video_capturer_settings,
     ffi::otc_bool
-);*/
+);
 
 #[derive(Default)]
 pub struct VideoCapturerCallbacks {
@@ -163,7 +162,7 @@ impl VideoCapturer {
         self.ffi_callbacks.clone()
     }
 
-    fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
+    pub fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
         let ptr = self.ptr.get().unwrap();
         if ptr.is_null() {
             return Err(OtcError::NullError);
@@ -182,11 +181,7 @@ impl VideoCapturer {
     callback_call_with_return!(start, OtcResult);
     callback_call_with_return!(stop, OtcResult);
 
-    fn get_capture_settings(
-        &mut self,
-        settings: *mut ffi::otc_video_capturer_settings,
-    ) -> OtcResult {
-        println!("get_capture_settings");
+    fn get_capture_settings(&self, settings: *mut ffi::otc_video_capturer_settings) -> OtcResult {
         if settings.is_null() {
             return Err(OtcError::NullError);
         }
