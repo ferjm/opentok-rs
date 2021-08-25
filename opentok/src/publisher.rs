@@ -213,8 +213,8 @@ unsafe impl Send for Publisher {}
 impl Publisher {
     pub fn new(name: &str, capturer: Option<VideoCapturer>, callbacks: PublisherCallbacks) -> Self {
         let name = CString::new(name).unwrap_or_default();
-        let capturer_callbacks = capturer.clone().map_or(std::ptr::null(), |capturer| {
-            &capturer.callbacks() as *const ffi::otc_video_capturer_callbacks
+        let capturer_callbacks = capturer.clone().map_or(std::ptr::null(), |mut capturer| {
+            &*capturer.callbacks().lock().unwrap() as *const ffi::otc_video_capturer_callbacks
         });
 
         let ffi_callbacks = ffi::otc_publisher_callbacks {

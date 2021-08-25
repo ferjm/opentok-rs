@@ -52,13 +52,13 @@ macro_rules! ffi_callback {
     };
 }
 
-macro_rules! ffi_callback_with_return {
+macro_rules! ffi_callback_with_return_user_data {
     ($fn_name:ident, $target_type:ty, $return_type:ty) => {
-        unsafe extern "C" fn $fn_name(target: $target_type, _: *mut c_void) -> $return_type {
+        unsafe extern "C" fn $fn_name(_: $target_type, user_data: *mut c_void) -> $return_type {
             let result: OtcBool = INSTANCES
                 .lock()
                 .unwrap()
-                .get(&(target as usize))
+                .get(&(user_data as usize))
                 .unwrap()
                 .$fn_name()
                 .into();
@@ -67,14 +67,14 @@ macro_rules! ffi_callback_with_return {
     };
     ($fn_name:ident, $target_type:ty, $arg1_type:ty, $return_type:ty) => {
         unsafe extern "C" fn $fn_name(
-            target: $target_type,
-            _: *mut c_void,
+            _: $target_type,
+            user_data: *mut c_void,
             arg1: $arg1_type,
         ) -> $return_type {
             let result: OtcBool = INSTANCES
                 .lock()
                 .unwrap()
-                .get(&(target as usize))
+                .get(&(user_data as usize))
                 .unwrap()
                 .$fn_name(arg1)
                 .into();

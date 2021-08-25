@@ -20,7 +20,7 @@ fn main() {
 
     let _ = opentok::init();
 
-    log::enable_log(LogLevel::Info);
+    log::enable_log(LogLevel::Error);
 
     let video_capturer_callbacks = VideoCapturerCallbacks::builder()
         .init(|_| {
