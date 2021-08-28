@@ -9,6 +9,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   OPENTOK_PATH: libopentok_linux_llvm_x86_64
+  LD_LIBRARY_PATH: libopentok_linux_llvm_x86_64/lib
 
 jobs:
   build:
