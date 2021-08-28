@@ -45,25 +45,22 @@ fn main() {
             let render_thread_running_ = render_thread_running.clone();
             std::thread::spawn(move || {
                 let settings = VideoCapturerSettings::default();
-                let capturer = capturer::Capturer::new(settings.format).unwrap();
+                let capturer = capturer::Capturer::new(&settings).unwrap();
                 let mut buf: Vec<u8> = vec![];
-                let expected_len = (settings.width * settings.height * 4) as usize;
                 loop {
                     if !render_thread_running_.load(Ordering::Relaxed) {
                         break;
                     }
                     if let Ok(buffer) = capturer.pull_buffer() {
                         buf.extend_from_slice((*buffer).as_ref());
-                        if buf.len() == expected_len {
-                            let frame = VideoFrame::new(
-                                settings.format,
-                                settings.width,
-                                settings.height,
-                                buf.clone(),
-                            );
-                            video_capturer.provide_frame(0, &frame).unwrap();
-                            buf.clear();
-                        }
+                        let frame = VideoFrame::new(
+                            settings.format,
+                            settings.width,
+                            settings.height,
+                            buf.clone(),
+                        );
+                        video_capturer.provide_frame(0, &frame).unwrap();
+                        buf.clear();
                     }
                     std::thread::sleep(std::time::Duration::from_micros(30 * 1_000));
                 }

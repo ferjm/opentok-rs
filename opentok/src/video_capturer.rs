@@ -32,7 +32,7 @@ pub struct VideoCapturerSettings {
 impl Default for VideoCapturerSettings {
     fn default() -> Self {
         Self {
-            format: FrameFormat::Rgba32,
+            format: FrameFormat::Yuv420P,
             width: 1280,
             height: 720,
             fps: 30,
