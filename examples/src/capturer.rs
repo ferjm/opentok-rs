@@ -1,7 +1,7 @@
 use anyhow::Error;
 use byte_slice_cast::*;
 use gst::prelude::*;
-use opentok::video_frame::FrameFormat;
+use opentok::video_capturer::VideoCapturerSettings;
 
 #[path = "./common.rs"]
 mod common;
@@ -22,11 +22,19 @@ pub struct Capturer {
 }
 
 impl Capturer {
-    pub fn new(format: FrameFormat) -> Result<Self, Error> {
+    pub fn new(settings: &VideoCapturerSettings) -> Result<Self, Error> {
         gst::init()?;
 
-        let format = gst_from_otc_format(format);
-        let caps = gst::Caps::new_simple("video/x-raw", &[("format", &format.to_string())]);
+        let format = gst_from_otc_format(settings.format);
+        let caps = gst::Caps::new_simple(
+            "video/x-raw",
+            &[
+                ("format", &format.to_string()),
+                ("width", &settings.width),
+                ("height", &settings.height),
+                ("framerate", &gst::Fraction::new(settings.fps, 1)),
+            ],
+        );
 
         let pipeline = gst::Pipeline::new(None);
         let src = gst::ElementFactory::make("videotestsrc", None)
