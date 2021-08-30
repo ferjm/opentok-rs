@@ -1,11 +1,14 @@
 extern crate opentok;
 
+use opentok::audio_device::{set_render_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
 use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use opentok::subscriber::{Subscriber, SubscriberCallbacks};
 use opentok::video_frame::FramePlane;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 #[path = "../renderer.rs"]
 mod renderer;
@@ -19,10 +22,46 @@ async fn main() -> anyhow::Result<()> {
 
     opentok::init()?;
 
-    log::enable_log(LogLevel::Disabled);
+    log::enable_log(LogLevel::Error);
 
     let renderer: Arc<Mutex<Option<renderer::Renderer>>> = Arc::new(Mutex::new(None));
     let renderer_ = renderer.clone();
+    let renderer2_ = renderer.clone();
+
+    let render_thread_running = Arc::new(AtomicBool::new(false));
+    let render_thread_running_ = render_thread_running.clone();
+    set_render_callbacks(
+        AudioDeviceCallbacks::builder()
+            .get_settings(|| -> AudioDeviceSettings {
+                AudioDeviceSettings {
+                    sampling_rate: 44100,
+                    number_of_channels: 1,
+                }
+            })
+            .start(move |device| {
+                let device = device.clone();
+                render_thread_running.store(true, Ordering::Relaxed);
+                let render_thread_running_ = render_thread_running.clone();
+                let renderer_ = renderer2_.clone();
+                thread::spawn(move || loop {
+                    if !render_thread_running_.load(Ordering::Relaxed) {
+                        break;
+                    }
+                    if let Some(sample) = device.read_sample() {
+                        if let Some(r) = renderer_.lock().unwrap().as_ref() {
+                            r.render_audio_sample(sample);
+                        }
+                    }
+                    thread::sleep(std::time::Duration::from_micros(10000));
+                });
+                Ok(())
+            })
+            .stop(move |_| {
+                render_thread_running_.store(false, Ordering::Relaxed);
+                Ok(())
+            })
+            .build(),
+    )?;
 
     let publisher_callbacks = PublisherCallbacks::builder()
         .on_error(|_, error, _| {
@@ -62,14 +101,19 @@ async fn main() -> anyhow::Result<()> {
                 frame.get_plane_stride(FramePlane::U).unwrap(),
                 frame.get_plane_stride(FramePlane::V).unwrap(),
             ];
-            renderer.lock().unwrap().as_ref().unwrap().push_buffer(
-                frame.get_buffer().unwrap(),
-                frame.get_format().unwrap(),
-                width,
-                height,
-                &offset,
-                &stride,
-            );
+            renderer
+                .lock()
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .push_video_buffer(
+                    frame.get_buffer().unwrap(),
+                    frame.get_format().unwrap(),
+                    width,
+                    height,
+                    &offset,
+                    &stride,
+                );
         })
         .on_error(|_, error, _| {
             println!("on_error {:?}", error);

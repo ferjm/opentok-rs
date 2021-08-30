@@ -1,5 +1,8 @@
 use anyhow::Error;
+
+use byte_slice_cast::*;
 use gst::prelude::*;
+use opentok::audio_device::AudioSample;
 use opentok::video_frame::FrameFormat;
 
 #[path = "./common.rs"]
@@ -9,7 +12,8 @@ use common::{gst_from_otc_format, MissingElement};
 
 pub struct Renderer {
     pipeline: gst::Pipeline,
-    src: gst::Element,
+    video_src: gst::Element,
+    audio_src: gst::Element,
 }
 
 impl Renderer {
@@ -17,22 +21,38 @@ impl Renderer {
         gst::init()?;
 
         let pipeline = gst::Pipeline::new(None);
-        let src =
+        let video_src =
             gst::ElementFactory::make("appsrc", None).map_err(|_| MissingElement("appsrc"))?;
         let videoconvert = gst::ElementFactory::make("videoconvert", None)
             .map_err(|_| MissingElement("videoconvert"))?;
         let sink = gst::ElementFactory::make("autovideosink", None)
             .map_err(|_| MissingElement("autovideosink"))?;
 
-        pipeline.add_many(&[&src, &videoconvert, &sink])?;
-        gst::Element::link_many(&[&src, &videoconvert, &sink])?;
+        pipeline.add_many(&[&video_src, &videoconvert, &sink])?;
+        gst::Element::link_many(&[&video_src, &videoconvert, &sink])?;
+
+        let audio_src =
+            gst::ElementFactory::make("appsrc", None).map_err(|_| MissingElement("appsrc"))?;
+        let audioresample = gst::ElementFactory::make("audioresample", None)
+            .map_err(|_| MissingElement("audioresample"))?;
+        let audioconvert = gst::ElementFactory::make("audioconvert", None)
+            .map_err(|_| MissingElement("audioconvert"))?;
+        let sink = gst::ElementFactory::make("autoaudiosink", None)
+            .map_err(|_| MissingElement("autoaudiosink"))?;
+
+        pipeline.add_many(&[&audio_src, &audioresample, &audioconvert, &sink])?;
+        gst::Element::link_many(&[&audio_src, &audioresample, &audioconvert, &sink])?;
 
         pipeline.set_state(gst::State::Playing)?;
 
-        Ok(Self { pipeline, src })
+        Ok(Self {
+            pipeline,
+            video_src,
+            audio_src,
+        })
     }
 
-    pub fn push_buffer(
+    pub fn push_video_buffer(
         &self,
         data: &[u8],
         format: FrameFormat,
@@ -54,7 +74,7 @@ impl Renderer {
             .unwrap();
         }
         let appsrc = self
-            .src
+            .video_src
             .clone()
             .dynamic_cast::<gst_app::AppSrc>()
             .expect("Source element is expected to be an appsrc!");
@@ -65,6 +85,32 @@ impl Renderer {
             .field("format", format!("{}", gst_format))
             .build();
 
+        let sample = gst::Sample::builder().caps(&caps).buffer(&buffer).build();
+        let _ = appsrc.push_sample(&sample);
+    }
+
+    pub fn render_audio_sample(&self, sample: AudioSample) {
+        struct CastVec(Vec<i16>);
+        impl AsRef<[u8]> for CastVec {
+            fn as_ref(&self) -> &[u8] {
+                self.0.as_byte_slice()
+            }
+        }
+        let buffer = gst::Buffer::from_slice(CastVec(sample.data.0));
+
+        // TODO: Set PTS on buffer
+        let gst_format = "S16LE";
+        let appsrc = self
+            .audio_src
+            .clone()
+            .dynamic_cast::<gst_app::AppSrc>()
+            .expect("Source element is expected to be an appsrc!");
+        let caps = gst::Caps::builder("audio/x-raw")
+            .field("format", gst_format.to_string())
+            .field("layout", "interleaved")
+            .field("rate", sample.sampling_rate)
+            .field("channels", sample.number_of_channels)
+            .build();
         let sample = gst::Sample::builder().caps(&caps).buffer(&buffer).build();
         let _ = appsrc.push_sample(&sample);
     }

@@ -7,6 +7,7 @@ mod macros;
 
 #[macro_use]
 pub mod connection;
+pub mod audio_device;
 mod enums;
 pub mod log;
 pub mod publisher;
@@ -23,7 +24,9 @@ use std::ptr;
 /// Initializes the library. You must call this function before
 /// the execution of any other code using the library.
 pub fn init() -> OtcResult {
-    unsafe { ffi::otc_init(ptr::null_mut()).into_result() }
+    let result = unsafe { ffi::otc_init(ptr::null_mut()).into_result() };
+    audio_device::initialize().map_err(|_| OtcError::Fatal)?;
+    result
 }
 
 /// Destroys the library engine. You should call this function when you are done
