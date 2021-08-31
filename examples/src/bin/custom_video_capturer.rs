@@ -1,5 +1,6 @@
 extern crate opentok;
 
+use opentok::audio_device::{set_capture_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
 use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
@@ -7,6 +8,7 @@ use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCaptur
 use opentok::video_frame::VideoFrame;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 #[path = "../capturer.rs"]
 mod capturer;
@@ -21,6 +23,41 @@ async fn main() -> anyhow::Result<()> {
     opentok::init()?;
 
     log::enable_log(LogLevel::Error);
+
+    let audio_capture_thread_running = Arc::new(AtomicBool::new(false));
+    let audio_capture_thread_running_ = audio_capture_thread_running.clone();
+
+    let capture_settings = AudioDeviceSettings {
+        sampling_rate: 44100,
+        number_of_channels: 1,
+    };
+    let settings_clone = capture_settings;
+    set_capture_callbacks(
+        AudioDeviceCallbacks::builder()
+            .get_settings(move || -> AudioDeviceSettings { settings_clone })
+            .start(move |device| {
+                let device = device.clone();
+                audio_capture_thread_running.store(true, Ordering::Relaxed);
+                let audio_capture_thread_running_ = audio_capture_thread_running.clone();
+                let audio_capturer = capturer::AudioCapturer::new(&capture_settings).unwrap();
+
+                thread::spawn(move || loop {
+                    if !audio_capture_thread_running_.load(Ordering::Relaxed) {
+                        break;
+                    }
+                    if let Some(data) = audio_capturer.pull_buffer() {
+                        device.write_capture_data(data);
+                    }
+                    thread::sleep(std::time::Duration::from_micros(10000));
+                });
+                Ok(())
+            })
+            .stop(move |_| {
+                audio_capture_thread_running_.store(false, Ordering::Relaxed);
+                Ok(())
+            })
+            .build(),
+    )?;
 
     let render_thread_running = Arc::new(AtomicBool::new(false));
     let render_thread_running_ = render_thread_running.clone();

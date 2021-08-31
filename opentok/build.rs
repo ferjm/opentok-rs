@@ -7,4 +7,5 @@ fn main() {
         println!("cargo:rustc-link-search=native={}", lib_path);
         println!("cargo:rustc-env=LD_LIBRARY_PATH={}", lib_path);
     }
+    println!("cargo:rerun-if-changed=build.rs");
 }
