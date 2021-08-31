@@ -12,7 +12,7 @@ lazy_static! {
 }
 
 /// Settings for a VideoCapturer.
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct VideoCapturerSettings {
     /// The pixel format.
     pub format: FrameFormat,

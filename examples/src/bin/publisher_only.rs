@@ -1,6 +1,5 @@
 extern crate opentok;
 
-use anyhow;
 use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
