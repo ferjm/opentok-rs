@@ -1,0 +1,24 @@
+name: gst-opentok-examples
+version: "0.1.0"
+about: gst-opentok examples
+args:
+  - api_key:
+      short: k
+      long: api-key
+      about: OpenTok/Vonage API key
+      takes_value: true
+  - session_id:
+      short: s
+      long: session-id
+      about: OpenTok/Vonage session ID
+      takes_value: true
+  - token:
+      short: t
+      long: token
+      about: OpenTok/Vonage session token
+      takes_value: true
+  - url:
+      short: u
+      long: url
+      about: OpenTok/Vonage demo room url (i.e. https://opentokdemo.tokbox.com/room/rust)
+      takes_value: true

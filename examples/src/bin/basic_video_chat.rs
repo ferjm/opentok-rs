@@ -1,28 +1,24 @@
 extern crate opentok;
 
+use anyhow;
 use opentok::log::{self, LogLevel};
 use opentok::publisher::{Publisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use opentok::subscriber::{Subscriber, SubscriberCallbacks};
 use opentok::video_frame::FramePlane;
-use std::env;
 use std::sync::{Arc, Mutex};
 
 #[path = "../renderer.rs"]
 mod renderer;
 
-fn main() {
-    let args: Vec<_> = env::args().collect();
-    if args.len() != 4 {
-        println!("Usage: basic_video_chat <api key> <session ID> <token>");
-        std::process::exit(-1);
-    }
+#[path = "../cli.rs"]
+mod cli;
 
-    let api_key: &str = args[1].as_ref();
-    let session_id: &str = args[2].as_ref();
-    let token: &str = args[3].as_ref();
+#[async_std::main]
+async fn main() -> anyhow::Result<()> {
+    let credentials = cli::parse_cli().await?;
 
-    let _ = opentok::init();
+    opentok::init()?;
 
     log::enable_log(LogLevel::Disabled);
 
@@ -104,11 +100,16 @@ fn main() {
             println!("on_error {:?}", error);
         })
         .build();
-    let session = Session::new(api_key, session_id, session_callbacks).unwrap();
-    let _ = session.connect(token);
+    let session = Session::new(
+        &credentials.api_key,
+        &credentials.session_id,
+        session_callbacks,
+    )?;
+
+    session.connect(&credentials.token)?;
 
     let main_loop = glib::MainLoop::new(None, false);
     main_loop.run();
 
-    let _ = opentok::deinit();
+    Ok(opentok::deinit()?)
 }
