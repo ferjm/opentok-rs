@@ -30,7 +30,7 @@ pub enum AudioDeviceError {
 /// default. The application call `set_render_callbacks()` and/or
 /// `set_capture_callbacks()` to have the AudioDevice configured.
 pub fn initialize() -> Result<(), AudioDeviceError> {
-    if let Some(_) = *SINGLETON.lock().unwrap() {
+    if SINGLETON.lock().unwrap().is_some() {
         return Ok(());
     }
     let audio_device = AudioDevice::new().map_err(|_| AudioDeviceError::InitializationFailure)?;

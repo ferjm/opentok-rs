@@ -1,3 +1,4 @@
+use crate::enums::{IntoResult, OtcError, OtcResult};
 use crate::stream::Stream;
 use crate::video_capturer::VideoCapturer;
 use crate::video_frame::VideoFrame;
@@ -269,6 +270,22 @@ impl Publisher {
             error_string.to_str().unwrap_or_default(),
             error_code.into(),
         );
+    }
+
+    pub fn toggle_audio(&self, audio_enabled: bool) -> OtcResult {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        unsafe { ffi::otc_publisher_set_publish_audio(self.ptr, audio_enabled.into()) }
+            .into_result()
+    }
+
+    pub fn toggle_video(&self, video_enabled: bool) -> OtcResult {
+        if self.ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+        unsafe { ffi::otc_publisher_set_publish_video(self.ptr, video_enabled.into()) }
+            .into_result()
     }
 
     pub fn delete(&self) {
