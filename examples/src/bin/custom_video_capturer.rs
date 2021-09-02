@@ -34,7 +34,8 @@ async fn main() -> anyhow::Result<()> {
                 let device = device.clone();
                 audio_capture_thread_running.store(true, Ordering::Relaxed);
                 let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-                let audio_capturer = capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
+                let audio_capturer =
+                    capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
 
                 thread::spawn(move || loop {
                     if !audio_capture_thread_running_.load(Ordering::Relaxed) {
