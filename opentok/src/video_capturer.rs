@@ -2,7 +2,6 @@ use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 use crate::video_frame::{FrameFormat, VideoFrame};
 
 use lazy_static::lazy_static;
-use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::os::raw::c_void;
 use std::sync::{Arc, Mutex};
@@ -113,7 +112,7 @@ impl VideoCapturerCallbacksBuilder {
 #[derive(Clone)]
 pub struct VideoCapturer {
     instance_id: usize,
-    ptr: OnceCell<*const ffi::otc_video_capturer>,
+    ptr: Arc<Mutex<Option<*const ffi::otc_video_capturer>>>,
     settings: VideoCapturerSettings,
     callbacks: Arc<Mutex<VideoCapturerCallbacks>>,
     ffi_callbacks: Arc<Mutex<ffi::otc_video_capturer_callbacks>>,
@@ -127,7 +126,7 @@ impl VideoCapturer {
         let instance_id = INSTANCES.lock().unwrap().len() + 1;
         let capturer = Self {
             instance_id,
-            ptr: OnceCell::default(),
+            ptr: Default::default(),
             settings,
             callbacks: Arc::new(Mutex::new(callbacks)),
             ffi_callbacks: Arc::new(Mutex::new(ffi::otc_video_capturer_callbacks {
@@ -163,17 +162,16 @@ impl VideoCapturer {
     }
 
     pub fn provide_frame(&self, rotation: i32, frame: &VideoFrame) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        let ptr = self.ptr.lock().unwrap();
+        if ptr.is_none() || ptr.as_ref().unwrap().is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_video_capturer_provide_frame(*ptr, rotation, **frame) }.into_result()
+        unsafe { ffi::otc_video_capturer_provide_frame(*ptr.as_ref().unwrap(), rotation, **frame) }
+            .into_result()
     }
 
     fn init(&self, capturer: *const ffi::otc_video_capturer) -> OtcResult {
-        self.ptr.set(capturer).map_err(|_| {
-            OtcError::Initialization("video_capturer", "Could not set video capturer")
-        })?;
+        *self.ptr.lock().unwrap() = Some(capturer);
         self.callbacks.lock().unwrap().init(self)
     }
 
