@@ -27,19 +27,14 @@ async fn main() -> anyhow::Result<()> {
     let audio_capture_thread_running = Arc::new(AtomicBool::new(false));
     let audio_capture_thread_running_ = audio_capture_thread_running.clone();
 
-    let capture_settings = AudioDeviceSettings {
-        sampling_rate: 44100,
-        number_of_channels: 1,
-    };
-    let settings_clone = capture_settings;
     set_capture_callbacks(
         AudioDeviceCallbacks::builder()
-            .get_settings(move || -> AudioDeviceSettings { settings_clone })
+            .get_settings(move || -> AudioDeviceSettings { AudioDeviceSettings::default() })
             .start(move |device| {
                 let device = device.clone();
                 audio_capture_thread_running.store(true, Ordering::Relaxed);
                 let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-                let audio_capturer = capturer::AudioCapturer::new(&capture_settings).unwrap();
+                let audio_capturer = capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
 
                 thread::spawn(move || loop {
                     if !audio_capture_thread_running_.load(Ordering::Relaxed) {

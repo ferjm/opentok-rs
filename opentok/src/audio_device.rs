@@ -1,6 +1,7 @@
 use crate::enums::{IntoResult, OtcBool, OtcError, OtcResult};
 
 use lazy_static::lazy_static;
+use log::warn;
 use std::collections::HashMap;
 use std::os::raw::c_void;
 use std::sync::{Arc, Mutex};
@@ -129,8 +130,12 @@ impl AudioDeviceCallbacks {
     callback_with_return!(stop, &AudioDevice, OtcResult);
 
     pub fn get_settings(&self) -> AudioDeviceSettings {
-        let callback = self.get_settings.as_ref().unwrap();
-        callback()
+        if let Some(callback) = self.get_settings.as_ref() {
+            callback()
+        } else {
+            warn!("No get_settings callback, returning default AudioDeviceSettings");
+            AudioDeviceSettings::default()
+        }
     }
 }
 
@@ -182,6 +187,15 @@ pub struct AudioSample {
 pub struct AudioDeviceSettings {
     pub sampling_rate: i32,
     pub number_of_channels: i32,
+}
+
+impl Default for AudioDeviceSettings {
+    fn default() -> AudioDeviceSettings {
+        AudioDeviceSettings {
+            sampling_rate: 44100,
+            number_of_channels: 1,
+        }
+    }
 }
 
 #[derive(Clone)]
