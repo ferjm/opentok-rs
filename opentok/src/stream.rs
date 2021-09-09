@@ -33,12 +33,12 @@ pub struct Stream {
 impl Stream {
     string_getter!(
         /// Gets the uniquer identifier for this stream.
-        => (get_id, otc_stream_get_id)
+        => (id, otc_stream_get_id)
     );
     string_getter!(
         /// Gets the name of the stream. The publisher of the stream
         /// can set this name to identify the stream.
-        => (get_name, otc_stream_get_name)
+        => (name, otc_stream_get_name)
     );
 
     /// Checks whether this stream is currently publishing video or not.

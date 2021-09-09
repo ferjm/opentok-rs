@@ -103,8 +103,11 @@ async fn main() -> anyhow::Result<()> {
     let video_capturer = VideoCapturer::new(Default::default(), video_capturer_callbacks);
 
     let publisher_callbacks = PublisherCallbacks::builder()
-        .on_stream_created(|_, _| {
+        .on_stream_created(|publisher, _| {
             println!("on_stream_created");
+            if let Some(stream) = publisher.stream() {
+                println!("Publishing stream {:?}", stream.id());
+            }
         })
         .on_error(|_, error, _| {
             println!("on_error {:?}", error);

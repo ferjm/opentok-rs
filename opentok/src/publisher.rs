@@ -288,6 +288,17 @@ impl Publisher {
             .into_result()
     }
 
+    pub fn stream(&self) -> Option<Stream> {
+        if self.ptr.is_null() {
+            return None;
+        }
+        let stream_ptr = unsafe { ffi::otc_publisher_get_stream(self.ptr) };
+        if stream_ptr.is_null() {
+            return None;
+        }
+        Some((stream_ptr as *const ffi::otc_stream).into())
+    }
+
     pub fn delete(&self) {
         if self.ptr.is_null() {
             return;
