@@ -6,7 +6,6 @@ use lazy_static::lazy_static;
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::ffi::CStr;
-use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
 
@@ -238,7 +237,7 @@ impl SubscriberCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Subscriber {
-    ptr: OnceCell<*mut ffi::otc_subscriber>,
+    ptr: Arc<Mutex<Option<*const ffi::otc_subscriber>>>,
     callbacks: Arc<Mutex<SubscriberCallbacks>>,
     stream: OnceCell<Stream>,
 }
@@ -255,14 +254,17 @@ impl Subscriber {
         }
     }
 
-    callback_call_with_copy!(on_connected, *const ffi::otc_stream, ffi::otc_stream_copy);
+    pub fn inner(&self) -> *const ffi::otc_subscriber {
+        match *self.ptr.lock().unwrap() {
+            Some(ptr) => ptr,
+            None => std::ptr::null_mut(),
+        }
+    }
+
+    callback_call!(on_connected, *const ffi::otc_stream);
     callback_call!(on_disconnected);
     callback_call!(on_reconnected);
-    callback_call_with_copy!(
-        on_render_frame,
-        *const ffi::otc_video_frame,
-        ffi::otc_video_frame_copy
-    );
+    callback_call!(on_render_frame, *const ffi::otc_video_frame);
     callback_call!(on_video_disabled, ffi::otc_video_reason);
     callback_call!(on_video_enabled, ffi::otc_video_reason);
     callback_call!(on_audio_disabled);
@@ -282,14 +284,6 @@ impl Subscriber {
             error_string.to_str().unwrap_or_default(),
             error_code.into(),
         );
-    }
-
-    pub fn delete(&self) {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
-            return;
-        }
-        unsafe { ffi::otc_subscriber_delete(*ptr as *mut ffi::otc_subscriber) };
     }
 
     pub fn set_stream(&self, stream: Stream) -> OtcResult {
@@ -316,12 +310,10 @@ impl Subscriber {
             user_data: std::ptr::null_mut(),
             reserved: std::ptr::null_mut(),
         };
-        assert!(self.ptr.get().is_none());
-        let ptr = unsafe { ffi::otc_subscriber_new(*stream, &ffi_callbacks) };
-        self.ptr
-            .set(ptr)
-            .map_err(|_| OtcError::Initialization("subscriber", "Could not set stream"))?;
+        assert!(self.ptr.lock().unwrap().is_none());
+        let ptr = unsafe { ffi::otc_subscriber_new(stream.inner(), &ffi_callbacks) };
         INSTANCES.lock().unwrap().insert(ptr as usize, self.clone());
+        *self.ptr.lock().unwrap() = Some(ptr);
         Ok(())
     }
 
@@ -330,15 +322,14 @@ impl Subscriber {
     }
 
     pub fn set_subscribe_to_video(&self, subscribe_to_video: bool) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
 
         let subscribe_to_video: OtcBool = subscribe_to_video.into();
         unsafe {
             ffi::otc_subscriber_set_subscribe_to_video(
-                *ptr as *mut ffi::otc_subscriber,
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
                 subscribe_to_video.into(),
             )
         }
@@ -346,15 +337,14 @@ impl Subscriber {
     }
 
     pub fn set_subscribe_to_audio(&self, subscribe_to_audio: bool) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
 
         let subscribe_to_video: OtcBool = subscribe_to_audio.into();
         unsafe {
             ffi::otc_subscriber_set_subscribe_to_video(
-                *ptr as *mut ffi::otc_subscriber,
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
                 subscribe_to_video.into(),
             )
         }
@@ -362,34 +352,35 @@ impl Subscriber {
     }
 
     pub fn get_subscribe_to_video(&self) -> Result<bool, OtcError> {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
         Ok(*OtcBool(unsafe {
-            ffi::otc_subscriber_get_subscribe_to_video(*ptr as *mut ffi::otc_subscriber)
+            ffi::otc_subscriber_get_subscribe_to_video(
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber
+            )
         }))
     }
 
     pub fn get_subscribe_to_audio(&self) -> Result<bool, OtcError> {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
         Ok(*OtcBool(unsafe {
-            ffi::otc_subscriber_get_subscribe_to_audio(*ptr as *mut ffi::otc_subscriber)
+            ffi::otc_subscriber_get_subscribe_to_audio(
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber
+            )
         }))
     }
 
     pub fn set_preferred_resolution(&self, width: u32, height: u32) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
 
         unsafe {
             ffi::otc_subscriber_set_preferred_resolution(
-                *ptr as *mut ffi::otc_subscriber,
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
                 width,
                 height,
             )
@@ -398,15 +389,14 @@ impl Subscriber {
     }
 
     pub fn get_preferred_resolution(&self) -> Result<(u32, u32), OtcError> {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
         let mut width = 0;
         let mut height = 0;
         unsafe {
             ffi::otc_subscriber_get_preferred_resolution(
-                *ptr as *mut ffi::otc_subscriber,
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
                 &mut width as *mut u32,
                 &mut height as *mut u32,
             )
@@ -416,25 +406,26 @@ impl Subscriber {
     }
 
     pub fn set_preferred_framerate(&self, framerate: f32) -> OtcResult {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
         unsafe {
-            ffi::otc_subscriber_set_preferred_framerate(*ptr as *mut ffi::otc_subscriber, framerate)
+            ffi::otc_subscriber_set_preferred_framerate(
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
+                framerate,
+            )
         }
         .into_result()
     }
 
     pub fn get_preferred_framerate(&self) -> Result<f32, OtcError> {
-        let ptr = self.ptr.get().unwrap();
-        if ptr.is_null() {
+        if self.ptr.lock().unwrap().is_none() {
             return Err(OtcError::NullError);
         }
         let mut framerate = 0.0;
         unsafe {
             ffi::otc_subscriber_get_preferred_framerate(
-                *ptr as *mut ffi::otc_subscriber,
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *mut ffi::otc_subscriber,
                 &mut framerate as *mut f32,
             )
         }
@@ -443,10 +434,36 @@ impl Subscriber {
     }
 }
 
-impl Deref for Subscriber {
-    type Target = *mut ffi::otc_subscriber;
+impl Drop for Subscriber {
+    fn drop(&mut self) {
+        match self.ptr.try_lock() {
+            Ok(ptr) => {
+                if ptr.is_none() {
+                    return;
+                }
+            }
+            Err(_) => return,
+        }
 
-    fn deref(&self) -> &Self::Target {
-        self.ptr.get().unwrap()
+        if Arc::strong_count(&self.ptr) != 2 {
+            return;
+        }
+
+        unsafe {
+            let session = ffi::otc_subscriber_get_session(
+                *self.ptr.lock().unwrap().as_ref().unwrap() as *const _,
+            );
+            if !session.is_null() {
+                ffi::otc_session_unsubscribe(
+                    session,
+                    *self.ptr.lock().unwrap().as_ref().unwrap() as *mut _,
+                );
+            }
+            ffi::otc_subscriber_delete(*self.ptr.lock().unwrap().as_ref().unwrap() as *mut _);
+        }
+
+        if let Ok(ref mut instances) = INSTANCES.try_lock() {
+            instances.remove(&(self.ptr.lock().unwrap().take().unwrap() as usize));
+        }
     }
 }

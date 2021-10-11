@@ -6,8 +6,8 @@ use crate::video_frame::VideoFrame;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use std::ops::Deref;
 use std::os::raw::{c_char, c_void};
+use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -203,7 +203,7 @@ impl PublisherCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Publisher {
-    ptr: *mut ffi::otc_publisher,
+    ptr: Arc<AtomicPtr<*const ffi::otc_publisher>>,
     capturer: Option<VideoCapturer>,
     callbacks: Arc<Mutex<PublisherCallbacks>>,
 }
@@ -232,7 +232,7 @@ impl Publisher {
         let ptr =
             unsafe { ffi::otc_publisher_new(name.as_ptr(), capturer_callbacks, &ffi_callbacks) };
         let publisher = Self {
-            ptr,
+            ptr: Arc::new(AtomicPtr::new(ptr as *mut _)),
             capturer,
             callbacks: Arc::new(Mutex::new(callbacks)),
         };
@@ -243,21 +243,13 @@ impl Publisher {
         publisher
     }
 
-    callback_call_with_copy!(
-        on_stream_created,
-        *const ffi::otc_stream,
-        ffi::otc_stream_copy
-    );
-    callback_call_with_copy!(
-        on_stream_destroyed,
-        *const ffi::otc_stream,
-        ffi::otc_stream_copy
-    );
-    callback_call_with_copy!(
-        on_render_frame,
-        *const ffi::otc_video_frame,
-        ffi::otc_video_frame_copy
-    );
+    pub fn inner(&self) -> *const ffi::otc_publisher {
+        self.ptr.load(Ordering::Relaxed) as *const _
+    }
+
+    callback_call!(on_stream_created, *const ffi::otc_stream);
+    callback_call!(on_stream_destroyed, *const ffi::otc_stream);
+    callback_call!(on_render_frame, *const ffi::otc_video_frame);
     callback_call!(on_audio_level_updated, f32);
 
     fn on_error(&self, error_string: *const c_char, error_code: ffi::otc_publisher_error_code) {
@@ -273,44 +265,69 @@ impl Publisher {
     }
 
     pub fn toggle_audio(&self, audio_enabled: bool) -> OtcResult {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_publisher_set_publish_audio(self.ptr, audio_enabled.into()) }
-            .into_result()
+        unsafe {
+            ffi::otc_publisher_set_publish_audio(
+                self.ptr.load(Ordering::Relaxed) as *mut _,
+                audio_enabled.into(),
+            )
+        }
+        .into_result()
     }
 
     pub fn toggle_video(&self, video_enabled: bool) -> OtcResult {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_publisher_set_publish_video(self.ptr, video_enabled.into()) }
-            .into_result()
+        unsafe {
+            ffi::otc_publisher_set_publish_video(
+                self.ptr.load(Ordering::Relaxed) as *mut _,
+                video_enabled.into(),
+            )
+        }
+        .into_result()
     }
 
     pub fn stream(&self) -> Option<Stream> {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return None;
         }
-        let stream_ptr = unsafe { ffi::otc_publisher_get_stream(self.ptr) };
+        let stream_ptr =
+            unsafe { ffi::otc_publisher_get_stream(self.ptr.load(Ordering::Relaxed) as *mut _) };
         if stream_ptr.is_null() {
             return None;
         }
         Some((stream_ptr as *const ffi::otc_stream).into())
     }
-
-    pub fn delete(&self) {
-        if self.ptr.is_null() {
-            return;
-        }
-        unsafe { ffi::otc_publisher_delete(self.ptr) };
-    }
 }
 
-impl Deref for Publisher {
-    type Target = *mut ffi::otc_publisher;
+impl Drop for Publisher {
+    fn drop(&mut self) {
+        let ptr = self.ptr.load(Ordering::Relaxed);
 
-    fn deref(&self) -> &Self::Target {
-        &self.ptr
+        // 2 because we keep a reference in INSTANCES.
+        if Arc::strong_count(&self.ptr) > 2 {
+            return;
+        }
+
+        if ptr.is_null() {
+            return;
+        }
+
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
+        unsafe {
+            let session = ffi::otc_publisher_get_session(ptr as *const _);
+            if !session.is_null() {
+                ffi::otc_session_unpublish(session, ptr as *mut _);
+            }
+            ffi::otc_publisher_delete(ptr as *mut _);
+        }
+
+        if let Ok(ref mut instances) = INSTANCES.try_lock() {
+            instances.remove(&(ptr as usize));
+        }
     }
 }

@@ -1,8 +1,7 @@
 use std::sync::atomic::{AtomicPtr, Ordering};
-use std::sync::Arc;
 
 pub struct Connection {
-    ptr: Arc<AtomicPtr<*const ffi::otc_connection>>,
+    ptr: AtomicPtr<*const ffi::otc_connection>,
 }
 
 impl Connection {
@@ -25,16 +24,34 @@ impl Connection {
     }
 }
 
+impl Clone for Connection {
+    fn clone(&self) -> Self {
+        (self.ptr.load(Ordering::Relaxed) as *const ffi::otc_connection).into()
+    }
+}
+
 impl Drop for Connection {
     fn drop(&mut self) {
-        // unsafe { ffi::otc_connection_delete(*self.ptr.lock().unwrap() as *mut ffi::otc_connection) };
+        let ptr = self.ptr.load(Ordering::Relaxed);
+
+        if ptr.is_null() {
+            return;
+        }
+
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
+        unsafe {
+            ffi::otc_connection_delete(ptr as *mut _);
+        }
     }
 }
 
 impl From<*const ffi::otc_connection> for Connection {
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn from(ptr: *const ffi::otc_connection) -> Connection {
+        let ptr = unsafe { ffi::otc_connection_copy(ptr) };
         Connection {
-            ptr: Arc::new(AtomicPtr::new(ptr as *mut _)),
+            ptr: AtomicPtr::new(ptr as *mut _),
         }
     }
 }

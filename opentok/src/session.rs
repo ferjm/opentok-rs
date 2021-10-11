@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
+use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
@@ -386,7 +387,7 @@ impl SessionCallbacksBuilder {
 
 #[derive(Clone)]
 pub struct Session {
-    ptr: *mut ffi::otc_session,
+    ptr: Arc<AtomicPtr<*mut ffi::otc_session>>,
     callbacks: Arc<Mutex<SessionCallbacks>>,
 }
 
@@ -434,7 +435,7 @@ impl Session {
             return Err(OtcError::NullError);
         }
         let session = Session {
-            ptr: session_ptr,
+            ptr: Arc::new(AtomicPtr::new(session_ptr as *mut _)),
             callbacks: Arc::new(Mutex::new(callbacks)),
         };
         INSTANCES
@@ -449,79 +450,65 @@ impl Session {
     /// * token - The client token for connecting to the session. Check
     /// https://tokbox.com/developer/guides/create-token/
     pub fn connect(&self, token: &str) -> OtcResult {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
         let token = std::ffi::CString::new(token).map_err(|_| OtcError::InvalidParam("token"))?;
-        unsafe { ffi::otc_session_connect(self.ptr, token.as_ptr()) }.into_result()
+        unsafe {
+            ffi::otc_session_connect(self.ptr.load(Ordering::Relaxed) as *mut _, token.as_ptr())
+        }
+        .into_result()
     }
 
     /// Disconnects the client from this session. All of the client's subscribers
     /// and publishers will also be will be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_session_disconnect(self.ptr) }.into_result()
-    }
-
-    /// Releases resources associated with the session.
-    pub fn delete(&self) -> OtcResult {
-        if self.ptr.is_null() {
-            return Err(OtcError::NullError);
-        }
-        unsafe { ffi::otc_session_delete(self.ptr) }.into_result()
+        unsafe { ffi::otc_session_disconnect(self.ptr.load(Ordering::Relaxed) as *mut _) }
+            .into_result()
     }
 
     pub fn publish(&self, publisher: &Publisher) -> OtcResult {
-        if self.ptr.is_null() {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_session_publish(self.ptr, **publisher as *mut _) }.into_result()
+        unsafe {
+            ffi::otc_session_publish(
+                self.ptr.load(Ordering::Relaxed) as *mut _,
+                publisher.inner() as *mut _,
+            )
+        }
+        .into_result()
     }
 
     pub fn subscribe(&self, subscriber: &Subscriber) -> OtcResult {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_session_subscribe(self.ptr, **subscriber as *mut _) }.into_result()
+        unsafe { ffi::otc_session_subscribe(ptr as *mut _, subscriber.inner() as *mut _) }
+            .into_result()
     }
 
     callback_call!(on_connected);
-    callback_call_with_copy!(
-        on_connection_created,
-        *const ffi::otc_connection,
-        ffi::otc_connection_copy
-    );
-    callback_call_with_copy!(
-        on_connection_dropped,
-        *const ffi::otc_connection,
-        ffi::otc_connection_copy
-    );
+    callback_call!(on_connection_created, *const ffi::otc_connection);
+    callback_call!(on_connection_dropped, *const ffi::otc_connection);
     callback_call!(on_reconnection_started);
     callback_call!(on_reconnected);
     callback_call!(on_disconnected);
-    callback_call_with_copy!(
-        on_stream_received,
-        *const ffi::otc_stream,
-        ffi::otc_stream_copy
-    );
-    callback_call_with_copy!(
-        on_stream_dropped,
-        *const ffi::otc_stream,
-        ffi::otc_stream_copy
-    );
-    callback_call_with_copy!(
+    callback_call!(on_stream_received, *const ffi::otc_stream);
+    callback_call!(on_stream_dropped, *const ffi::otc_stream);
+    callback_call!(
         on_stream_video_dimensions_changed,
         *const ffi::otc_stream,
-        ffi::otc_stream_copy,
         i32,
         i32
     );
-    callback_call_with_copy!(
+    callback_call!(
         on_stream_video_type_changed,
         *const ffi::otc_stream,
-        ffi::otc_stream_copy,
         ffi::otc_stream_video_type
     );
 
@@ -568,7 +555,6 @@ impl Session {
         }
         let type_ = unsafe { CStr::from_ptr(type_) };
         let signal = unsafe { CStr::from_ptr(signal) };
-        let connection = unsafe { ffi::otc_connection_copy(connection) };
         self.callbacks.lock().unwrap().on_signal_received(
             self,
             type_.to_str().unwrap_or_default(),
@@ -616,8 +602,26 @@ impl Session {
 
 impl Drop for Session {
     fn drop(&mut self) {
-        // FIXME: either handle refcount here or expose a method to delete the session
-        //        explicitly.
-        //unsafe { ffi::otc_session_delete(*self.ptr.get().unwrap() as *mut _) };
+        let ptr = self.ptr.load(Ordering::Relaxed);
+
+        // 2 because we keep a reference in INSTANCES.
+        if Arc::strong_count(&self.ptr) > 2 {
+            return;
+        }
+
+        if ptr.is_null() {
+            return;
+        }
+
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
+        unsafe {
+            ffi::otc_session_disconnect(ptr as *mut _);
+            ffi::otc_session_delete(ptr as *mut _);
+        }
+
+        if let Ok(ref mut instances) = INSTANCES.try_lock() {
+            instances.remove(&(ptr as usize));
+        }
     }
 }

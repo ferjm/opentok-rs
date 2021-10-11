@@ -314,51 +314,10 @@ macro_rules! callback_call_with_return {
     };
 }
 
-macro_rules! callback_call_with_copy {
-    ($fn_name:ident, $ty1:ty, $copy_fn:expr) => {
-        fn $fn_name(&self, arg1: $ty1) {
-            if arg1.is_null() {
-                return;
-            }
-            let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name(self, (arg1 as $ty1).into())
-        }
-    };
-    ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty) => {
-        fn $fn_name(&self, arg1: $ty1, arg2: $ty2) {
-            if arg1.is_null() {
-                return;
-            }
-            let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks
-                .lock()
-                .unwrap()
-                .$fn_name(self, (arg1 as $ty1).into(), arg2.into())
-        }
-    };
-    ($fn_name:ident, $ty1:ty, $copy_fn:expr, $ty2:ty, $ty3:ty) => {
-        fn $fn_name(&self, arg1: $ty1, arg2: $ty2, arg3: $ty3) {
-            if arg1.is_null() {
-                return;
-            }
-            let arg1 = unsafe { $copy_fn(arg1) };
-            self.callbacks.lock().unwrap().$fn_name(
-                self,
-                (arg1 as $ty1).into(),
-                arg2.into(),
-                arg3.into(),
-            )
-        }
-    };
-}
-
 macro_rules! string_getter {
     ($(#[$attr:meta])* => ($method:ident, $ffi:ident)) => {
         pub fn $method(&self) -> String {
-            let property = unsafe { ffi::$ffi(self.ptr) };
+            let property = unsafe { ffi::$ffi(self.ptr.load(Ordering::Relaxed) as *const _) };
             let property: &CStr = unsafe { CStr::from_ptr(property) };
             property.to_str().unwrap().to_owned()
         }

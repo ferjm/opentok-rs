@@ -166,8 +166,10 @@ impl VideoCapturer {
         if ptr.is_none() || ptr.as_ref().unwrap().is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_video_capturer_provide_frame(*ptr.as_ref().unwrap(), rotation, **frame) }
-            .into_result()
+        unsafe {
+            ffi::otc_video_capturer_provide_frame(*ptr.as_ref().unwrap(), rotation, frame.inner())
+        }
+        .into_result()
     }
 
     fn init(&self, capturer: *const ffi::otc_video_capturer) -> OtcResult {

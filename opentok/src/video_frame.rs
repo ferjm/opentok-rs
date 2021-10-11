@@ -1,8 +1,8 @@
 use crate::{OtcError, OtcResult};
 
 use std::convert::TryInto;
-use std::ops::Deref;
 use std::slice;
+use std::sync::atomic::{AtomicPtr, Ordering};
 
 /// Video frame format enumeration.
 #[derive(Clone, Copy, Debug)]
@@ -117,167 +117,183 @@ impl From<FramePlane> for ffi::otc_video_frame_plane {
 }
 
 pub struct VideoFrame {
-    ptr: *const ffi::otc_video_frame,
+    ptr: AtomicPtr<*const ffi::otc_video_frame>,
 }
 
 impl VideoFrame {
+    pub fn inner(&self) -> *const ffi::otc_video_frame {
+        self.ptr.load(Ordering::Relaxed) as *const _
+    }
+
     pub fn new(format: FrameFormat, width: i32, height: i32, buffer: Vec<u8>) -> Self {
         Self {
-            ptr: unsafe { ffi::otc_video_frame_new(format.into(), width, height, buffer.as_ptr()) },
+            ptr: AtomicPtr::new(unsafe {
+                ffi::otc_video_frame_new(format.into(), width, height, buffer.as_ptr()) as *mut _
+            }),
         }
     }
 
     pub fn new_mjpeg(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
         Self {
-            ptr: unsafe {
+            ptr: AtomicPtr::new(unsafe {
                 ffi::otc_video_frame_new_MJPEG(
                     width,
                     height,
                     buffer.as_ptr(),
                     size.try_into().expect("usize to size_t cast"),
-                )
-            },
+                ) as *mut _
+            }),
         }
     }
 
     pub fn new_compressed(width: i32, height: i32, buffer: Vec<u8>, size: usize) -> Self {
         Self {
-            ptr: unsafe {
+            ptr: AtomicPtr::new(unsafe {
                 ffi::otc_video_frame_new_compressed(
                     width,
                     height,
                     buffer.as_ptr(),
                     size.try_into().expect("usize to size_t cast"),
                 )
-            },
+            } as *mut _),
         }
     }
 
     // FIXME: implement more constructors as needed.
 
     pub fn get_buffer(&self) -> Result<&[u8], OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        let data = unsafe { ffi::otc_video_frame_get_buffer(self.ptr) };
-        let size = unsafe { ffi::otc_video_frame_get_buffer_size(self.ptr) };
+        let data = unsafe { ffi::otc_video_frame_get_buffer(ptr as *const _) };
+        let size = unsafe { ffi::otc_video_frame_get_buffer_size(ptr as *const _) };
         Ok(unsafe { slice::from_raw_parts(data, size.try_into().expect("u64 to usize cast")) })
     }
 
     pub fn get_timestamp(&self) -> Result<i64, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe { ffi::otc_video_frame_get_timestamp(self.ptr) })
+        Ok(unsafe { ffi::otc_video_frame_get_timestamp(ptr as *const _) })
     }
 
     pub fn set_timestamp(&mut self, timestamp: i64) -> OtcResult {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
         unsafe {
-            ffi::otc_video_frame_set_timestamp(self.ptr as *mut ffi::otc_video_frame, timestamp);
+            ffi::otc_video_frame_set_timestamp(ptr as *mut _, timestamp);
         }
         Ok(())
     }
 
     pub fn get_width(&self) -> Result<i32, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe { ffi::otc_video_frame_get_width(self.ptr) })
+        Ok(unsafe { ffi::otc_video_frame_get_width(ptr as *const _) })
     }
 
     pub fn get_height(&self) -> Result<i32, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe { ffi::otc_video_frame_get_height(self.ptr) })
+        Ok(unsafe { ffi::otc_video_frame_get_height(ptr as *const _) })
     }
 
     pub fn get_number_of_planes(&self) -> Result<usize, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
         Ok(unsafe {
-            ffi::otc_video_frame_get_number_of_planes(self.ptr)
+            ffi::otc_video_frame_get_number_of_planes(ptr as *const _)
                 .try_into()
                 .expect("u64 to usize cast")
         })
     }
 
     pub fn get_format(&self) -> Result<FrameFormat, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe { ffi::otc_video_frame_get_format(self.ptr) }.into())
+        Ok(unsafe { ffi::otc_video_frame_get_format(ptr as *const _) }.into())
     }
 
     pub fn set_format(&mut self, format: FrameFormat) -> OtcResult {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
         unsafe {
-            ffi::otc_video_frame_set_format(self.ptr as *mut ffi::otc_video_frame, format.into());
+            ffi::otc_video_frame_set_format(ptr as *mut _, format.into());
         }
         Ok(())
     }
 
     pub fn convert(&mut self, format: FrameFormat) -> Result<VideoFrame, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(((unsafe {
-            ffi::otc_video_frame_convert(format.into(), self.ptr as *mut ffi::otc_video_frame)
-        }) as *const ffi::otc_video_frame)
-            .into())
+        Ok(
+            ((unsafe { ffi::otc_video_frame_convert(format.into(), ptr as *mut _) })
+                as *const ffi::otc_video_frame)
+                .into(),
+        )
     }
 
     pub fn get_plane_size(&self, plane: FramePlane) -> Result<usize, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe {
-            ffi::otc_video_frame_get_plane_size(self.ptr as *mut ffi::otc_video_frame, plane.into())
-                as usize
-        })
+        Ok(unsafe { ffi::otc_video_frame_get_plane_size(ptr as *mut _, plane.into()) as usize })
     }
 
     pub fn get_plane_stride(&self, plane: FramePlane) -> Result<i32, OtcError> {
-        if self.ptr.is_null() {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        Ok(unsafe {
-            ffi::otc_video_frame_get_plane_stride(
-                self.ptr as *mut ffi::otc_video_frame,
-                plane.into(),
-            )
-        })
+        Ok(unsafe { ffi::otc_video_frame_get_plane_stride(ptr as *mut _, plane.into()) })
+    }
+}
+
+impl Clone for VideoFrame {
+    fn clone(&self) -> Self {
+        (self.ptr.load(Ordering::Relaxed) as *const ffi::otc_video_frame).into()
     }
 }
 
 impl Drop for VideoFrame {
     fn drop(&mut self) {
-        if self.ptr.is_null() {
-            panic!("Attempting to drop an invalid VideoFrame pointer");
+        let ptr = self.ptr.load(Ordering::Relaxed);
+
+        if ptr.is_null() {
+            return;
         }
+
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
 
         unsafe {
-            ffi::otc_video_frame_delete(self.ptr as *mut ffi::otc_video_frame);
+            ffi::otc_video_frame_delete(ptr as *mut _);
         }
-    }
-}
-
-impl Deref for VideoFrame {
-    type Target = *const ffi::otc_video_frame;
-
-    fn deref(&self) -> &*const ffi::otc_video_frame {
-        &self.ptr
     }
 }
 
 impl From<*const ffi::otc_video_frame> for VideoFrame {
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
     fn from(ptr: *const ffi::otc_video_frame) -> Self {
-        Self { ptr }
+        let ptr = unsafe { ffi::otc_video_frame_copy(ptr) };
+        Self {
+            ptr: AtomicPtr::new(ptr as *mut _),
+        }
     }
 }
