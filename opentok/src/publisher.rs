@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
-    static ref INSTANCES: Arc<Mutex<HashMap<usize, Publisher>>> = Default::default();
+    pub static ref INSTANCES: Arc<Mutex<HashMap<usize, Publisher>>> = Default::default();
 }
 
 /// This enumeration represents all the possible error types

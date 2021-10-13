@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
 lazy_static! {
-    static ref INSTANCES: Arc<Mutex<HashMap<usize, Session>>> = Default::default();
+    pub static ref INSTANCES: Arc<Mutex<HashMap<usize, Session>>> = Default::default();
 }
 
 /// Errors associated with an OpenTok session.
@@ -616,7 +616,6 @@ impl Drop for Session {
         self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
 
         unsafe {
-            ffi::otc_session_disconnect(ptr as *mut _);
             ffi::otc_session_delete(ptr as *mut _);
         }
 

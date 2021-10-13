@@ -10,7 +10,7 @@ use std::os::raw::{c_char, c_void};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
-    static ref INSTANCES: Arc<Mutex<HashMap<usize, Subscriber>>> = Default::default();
+    pub static ref INSTANCES: Arc<Mutex<HashMap<usize, Subscriber>>> = Default::default();
 }
 
 /// All possible Subscriber errors.
@@ -449,21 +449,17 @@ impl Drop for Subscriber {
             return;
         }
 
+        let ptr = self.ptr.lock().unwrap().take().unwrap();
         unsafe {
-            let session = ffi::otc_subscriber_get_session(
-                *self.ptr.lock().unwrap().as_ref().unwrap() as *const _,
-            );
+            let session = ffi::otc_subscriber_get_session(ptr as *const _);
             if !session.is_null() {
-                ffi::otc_session_unsubscribe(
-                    session,
-                    *self.ptr.lock().unwrap().as_ref().unwrap() as *mut _,
-                );
+                ffi::otc_session_unsubscribe(session, ptr as *mut _);
             }
-            ffi::otc_subscriber_delete(*self.ptr.lock().unwrap().as_ref().unwrap() as *mut _);
+            ffi::otc_subscriber_delete(ptr as *mut _);
         }
 
         if let Ok(ref mut instances) = INSTANCES.try_lock() {
-            instances.remove(&(self.ptr.lock().unwrap().take().unwrap() as usize));
+            instances.remove(&(ptr as usize));
         }
     }
 }
