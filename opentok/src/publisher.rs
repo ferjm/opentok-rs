@@ -257,11 +257,13 @@ impl Publisher {
             return;
         }
         let error_string = unsafe { CStr::from_ptr(error_string) };
-        self.callbacks.lock().unwrap().on_error(
-            self,
-            error_string.to_str().unwrap_or_default(),
-            error_code.into(),
-        );
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_error(
+                self,
+                error_string.to_str().unwrap_or_default(),
+                error_code.into(),
+            );
+        }
     }
 
     pub fn toggle_audio(&self, audio_enabled: bool) -> OtcResult {

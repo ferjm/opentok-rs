@@ -521,11 +521,13 @@ impl Session {
             return;
         }
         let stream = unsafe { ffi::otc_stream_copy(stream) };
-        self.callbacks.lock().unwrap().on_stream_has_audio_changed(
-            self,
-            (stream as *const ffi::otc_stream).into(),
-            *OtcBool(has_audio),
-        )
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_stream_has_audio_changed(
+                self,
+                (stream as *const ffi::otc_stream).into(),
+                *OtcBool(has_audio),
+            )
+        }
     }
 
     fn on_stream_has_video_changed(
@@ -537,11 +539,13 @@ impl Session {
             return;
         }
         let stream = unsafe { ffi::otc_stream_copy(stream) };
-        self.callbacks.lock().unwrap().on_stream_has_video_changed(
-            self,
-            (stream as *const ffi::otc_stream).into(),
-            *OtcBool(has_video),
-        )
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_stream_has_video_changed(
+                self,
+                (stream as *const ffi::otc_stream).into(),
+                *OtcBool(has_video),
+            )
+        }
     }
 
     fn on_signal_received(
@@ -555,12 +559,14 @@ impl Session {
         }
         let type_ = unsafe { CStr::from_ptr(type_) };
         let signal = unsafe { CStr::from_ptr(signal) };
-        self.callbacks.lock().unwrap().on_signal_received(
-            self,
-            type_.to_str().unwrap_or_default(),
-            signal.to_str().unwrap_or_default(),
-            (connection as *const ffi::otc_connection).into(),
-        );
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_signal_received(
+                self,
+                type_.to_str().unwrap_or_default(),
+                signal.to_str().unwrap_or_default(),
+                (connection as *const ffi::otc_connection).into(),
+            );
+        }
     }
 
     fn on_archive_started(&self, archive_id: *const c_char, name: *const c_char) {
@@ -569,11 +575,13 @@ impl Session {
         }
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
         let name = unsafe { CStr::from_ptr(name) };
-        self.callbacks.lock().unwrap().on_archive_started(
-            self,
-            archive_id.to_str().unwrap_or_default(),
-            name.to_str().unwrap_or_default(),
-        );
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_archive_started(
+                self,
+                archive_id.to_str().unwrap_or_default(),
+                name.to_str().unwrap_or_default(),
+            );
+        }
     }
 
     fn on_archive_stopped(&self, archive_id: *const c_char) {
@@ -581,10 +589,9 @@ impl Session {
             return;
         }
         let archive_id = unsafe { CStr::from_ptr(archive_id) };
-        self.callbacks
-            .lock()
-            .unwrap()
-            .on_archive_stopped(self, archive_id.to_str().unwrap_or_default());
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_archive_stopped(self, archive_id.to_str().unwrap_or_default());
+        }
     }
 
     fn on_error(&self, error_string: *const c_char, error: ffi::otc_session_error_code) {
@@ -592,11 +599,13 @@ impl Session {
             return;
         }
         let error_string = unsafe { CStr::from_ptr(error_string) };
-        self.callbacks.lock().unwrap().on_error(
-            self,
-            error_string.to_str().unwrap_or_default(),
-            error.into(),
-        );
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_error(
+                self,
+                error_string.to_str().unwrap_or_default(),
+                error.into(),
+            );
+        }
     }
 }
 
