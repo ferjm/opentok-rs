@@ -23,6 +23,9 @@ async fn main() -> anyhow::Result<()> {
     opentok::init()?;
 
     log::enable_log(LogLevel::Error);
+    log::logger_callback(Box::new(|msg| {
+        println!("{:?}", msg);
+    }));
 
     let renderer: Arc<Mutex<Option<renderer::Renderer>>> = Arc::new(Mutex::new(None));
     let renderer_ = renderer.clone();

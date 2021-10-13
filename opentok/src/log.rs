@@ -1,3 +1,7 @@
+use lazy_static::lazy_static;
+use std::ffi::CStr;
+use std::sync::{Arc, Mutex};
+
 /// Log level enumeration.
 ///
 /// This enumeration represents the different log levels supported.
@@ -62,4 +66,23 @@ impl From<LogLevel> for ffi::otc_log_level {
 
 pub fn enable_log(level: LogLevel) {
     unsafe { ffi::otc_log_enable(level.into()) };
+}
+
+pub type LoggerCallback = Box<dyn Fn(&str) + Send + Sync + 'static>;
+
+lazy_static! {
+    pub static ref LOGGER_CALLBACKS: Arc<Mutex<Vec<LoggerCallback>>> = Default::default();
+}
+
+unsafe extern "C" fn ffi_logger_callback(message: *const ::std::os::raw::c_char) {
+    let message: &CStr = CStr::from_ptr(message);
+    let message: &str = message.to_str().unwrap();
+    for ref callback in LOGGER_CALLBACKS.lock().unwrap().iter() {
+        callback(message);
+    }
+}
+
+pub fn logger_callback(callback: LoggerCallback) {
+    LOGGER_CALLBACKS.lock().unwrap().push(callback);
+    unsafe { ffi::otc_log_set_logger_callback(Some(ffi_logger_callback)) }
 }
