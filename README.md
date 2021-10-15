@@ -1,4 +1,5 @@
 # Rust bindings for OpenTok SDK
+[![Rust](https://github.com/ferjm/opentok-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/ferjm/opentok-rs/actions/workflows/rust.yml)
 
 [OpenTok SDK](https://tokbox.com/developer/sdks/linux/) bindings for Rust.
 
