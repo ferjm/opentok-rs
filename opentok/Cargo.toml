@@ -2,7 +2,7 @@
 name = "opentok"
 version = "1.0.0"
 description = "Rust bindings for OpenTok SDK"
-authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
+authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com"]
 edition = "2018"
 
 [dependencies]
