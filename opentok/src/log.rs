@@ -76,9 +76,12 @@ lazy_static! {
 
 unsafe extern "C" fn ffi_logger_callback(message: *const ::std::os::raw::c_char) {
     let message: &CStr = CStr::from_ptr(message);
-    let message: &str = message.to_str().unwrap();
-    for ref callback in LOGGER_CALLBACKS.lock().unwrap().iter() {
-        callback(message);
+    if let Ok(message) = message.to_str() {
+        if let Ok(callbacks) = LOGGER_CALLBACKS.try_lock() {
+            for ref callback in callbacks.iter() {
+                callback(message);
+            }
+        }
     }
 }
 

@@ -13,7 +13,11 @@ once_cell = "1.8.0"
 thiserror = "1.0.24"
 anyhow = "1"
 
+[dev-dependencies]
+futures = "0.3.17"
+opentok-server = { git = "https://github.com/ferjm/opentok-server-rs", branch = "main" }
+
 [dev-dependencies.cargo-husky]
 version = "1.5.0"
 default-features = false
-features = ["precommit-hook", "run-cargo-clippy"]
+features = ["user-hooks"]

@@ -445,6 +445,11 @@ impl Session {
         Ok(session)
     }
 
+    string_getter!(
+        /// Gets the uniquer identifier for this session.
+        => (id, otc_session_get_id)
+    );
+
     /// Connects a client to an OpenTok session.
     ///
     /// * token - The client token for connecting to the session. Check
