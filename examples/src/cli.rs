@@ -1,11 +1,5 @@
 use clap::{load_yaml, App};
-
-#[derive(Debug, Default)]
-pub struct Credentials {
-    pub api_key: String,
-    pub session_id: String,
-    pub token: String,
-}
+use opentok_utils::common::Credentials;
 
 pub async fn parse_cli() -> Result<Credentials, anyhow::Error> {
     let yaml = load_yaml!("cli.yaml");

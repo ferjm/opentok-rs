@@ -1,13 +1,10 @@
+use crate::common::{gst_from_otc_format, MissingElement};
+
 use anyhow::Error;
 use byte_slice_cast::*;
 use gst::prelude::*;
 use opentok::audio_device::{AudioDeviceSettings, AudioSampleData};
 use opentok::video_capturer::VideoCapturerSettings;
-
-#[path = "./common.rs"]
-mod common;
-
-use common::{gst_from_otc_format, MissingElement};
 
 pub struct CapturerBuffer(gst::buffer::MappedBuffer<gst::buffer::Readable>);
 

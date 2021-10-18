@@ -1,8 +1,10 @@
 [package]
-name = "examples"
-version = "1.0.0"
-authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
+name = "opentok-utils"
+version = "0.1.0"
 edition = "2018"
+description = "Test utilities for the OpenTok SDK Rust bindings"
+authors = ["Fernando Jiménez Moreno <ferjmoreno@gmail.com>"]
+repository = "https://github.com/ferjm/opentok-rs-test-utils"
 
 [dependencies]
 anyhow = "1.0.40"
@@ -13,20 +15,3 @@ gst = { package = "gstreamer", git = "https://gitlab.freedesktop.org/gstreamer/g
 gst-app = { package = "gstreamer-app", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
 gst-video = { package = "gstreamer-video", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
 opentok = { path = "../opentok" }
-opentok-utils = { path = "../utils" }
-json = "0.12"
-surf = "2"
-clap = { version = "3.0.0-beta.1", features = ["yaml"]}
-
-[dependencies.async-std]
-features = ["attributes"]
-version = "1"
-
-[[bin]]
-name = "basic_video_chat"
-
-[[bin]]
-name = "custom_video_capturer"
-
-[[bin]]
-name = "publisher_only"
