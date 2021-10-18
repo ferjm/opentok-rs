@@ -10,26 +10,21 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+type Callback = Box<dyn Fn(&Publisher, String) + Send + Sync + 'static>;
+
+#[derive(Clone)]
 pub struct Publisher {
     credentials: Credentials,
     main_loop: glib::MainLoop,
-    stream_id: Arc<Mutex<Option<String>>>,
+    on_stream_created: Arc<Mutex<Option<Callback>>>,
 }
 
 impl Publisher {
-    pub fn new(credentials: Credentials) -> Self {
+    pub fn new(credentials: Credentials, on_stream_created: Option<Callback>) -> Self {
         Self {
             credentials,
             main_loop: glib::MainLoop::new(None, false),
-            stream_id: Default::default(),
-        }
-    }
-
-    pub fn get_stream_id(&self) -> Option<String> {
-        if let Ok(stream_id) = self.stream_id.try_lock() {
-            stream_id.as_ref().cloned()
-        } else {
-            None
+            on_stream_created: Arc::new(Mutex::new(on_stream_created)),
         }
     }
 
@@ -103,11 +98,14 @@ impl Publisher {
             .build();
         let video_capturer = VideoCapturer::new(Default::default(), video_capturer_callbacks);
 
-        let stream_id = self.stream_id.clone();
+        let on_stream_created = self.on_stream_created.clone();
+        let this = self.clone();
         let publisher_callbacks = PublisherCallbacks::builder()
             .on_stream_created(move |_, stream| {
                 println!("on_stream_created");
-                *stream_id.lock().unwrap() = Some(stream.id());
+                if let Some(ref callback) = *on_stream_created.lock().unwrap() {
+                    callback(&this, stream.id());
+                }
             })
             .on_error(|_, error, _| {
                 println!("on_error {:?}", error);

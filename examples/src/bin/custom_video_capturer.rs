@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
 
     log::enable_log(LogLevel::Error);
 
-    Publisher::new(credentials).run()?;
+    Publisher::new(credentials, None).run()?;
 
     Ok(opentok::deinit()?)
 }

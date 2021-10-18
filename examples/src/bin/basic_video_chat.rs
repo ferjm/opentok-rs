@@ -23,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
         Subscriber::new(credentials_).run().unwrap();
     });
 
-    Publisher::new(credentials).run()?;
+    Publisher::new(credentials, None).run()?;
 
     Ok(opentok::deinit()?)
 }
