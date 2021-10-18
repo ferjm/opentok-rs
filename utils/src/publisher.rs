@@ -13,6 +13,7 @@ use std::thread;
 pub struct Publisher {
     credentials: Credentials,
     main_loop: glib::MainLoop,
+    stream_id: Arc<Mutex<Option<String>>>,
 }
 
 impl Publisher {
@@ -20,6 +21,15 @@ impl Publisher {
         Self {
             credentials,
             main_loop: glib::MainLoop::new(None, false),
+            stream_id: Default::default(),
+        }
+    }
+
+    pub fn get_stream_id(&self) -> Option<String> {
+        if let Ok(stream_id) = self.stream_id.try_lock() {
+            stream_id.as_ref().cloned()
+        } else {
+            None
         }
     }
 
@@ -93,9 +103,11 @@ impl Publisher {
             .build();
         let video_capturer = VideoCapturer::new(Default::default(), video_capturer_callbacks);
 
+        let stream_id = self.stream_id.clone();
         let publisher_callbacks = PublisherCallbacks::builder()
-            .on_stream_created(|_, _| {
+            .on_stream_created(move |_, stream| {
                 println!("on_stream_created");
+                *stream_id.lock().unwrap() = Some(stream.id());
             })
             .on_error(|_, error, _| {
                 println!("on_error {:?}", error);
