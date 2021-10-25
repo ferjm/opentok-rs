@@ -1,7 +1,7 @@
 use clap::{load_yaml, App};
 use opentok_utils::common::Credentials;
 
-pub async fn parse_cli() -> Result<Credentials, anyhow::Error> {
+pub async fn parse_cli() -> Result<(Credentials, Option<u64>), anyhow::Error> {
     let yaml = load_yaml!("cli.yaml");
     let mut app = App::from(yaml);
     let matches = app.clone().get_matches();
@@ -37,5 +37,9 @@ pub async fn parse_cli() -> Result<Credentials, anyhow::Error> {
         return Err(anyhow::anyhow!("Failed to parse arguments"));
     }
 
-    Ok(credentials)
+    let duration = matches
+        .value_of("duration")
+        .map(|s| s.parse::<u64>().unwrap());
+
+    Ok((credentials, duration))
 }

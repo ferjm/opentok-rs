@@ -10,7 +10,7 @@ mod cli;
 
 #[async_std::main]
 async fn main() -> anyhow::Result<()> {
-    let credentials = cli::parse_cli().await?;
+    let (credentials, duration) = cli::parse_cli().await?;
 
     opentok::init()?;
 
@@ -53,6 +53,15 @@ async fn main() -> anyhow::Result<()> {
     session.connect(&credentials.token)?;
 
     let main_loop = glib::MainLoop::new(None, false);
+
+    if let Some(duration) = duration {
+        let main_loop = main_loop.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_secs(duration));
+            main_loop.quit();
+        });
+    }
+
     main_loop.run();
 
     Ok(opentok::deinit()?)

@@ -17,14 +17,20 @@ pub struct Publisher {
     credentials: Credentials,
     main_loop: glib::MainLoop,
     on_stream_created: Arc<Mutex<Option<Callback>>>,
+    duration: Option<u64>,
 }
 
 impl Publisher {
-    pub fn new(credentials: Credentials, on_stream_created: Option<Callback>) -> Self {
+    pub fn new(
+        credentials: Credentials,
+        on_stream_created: Option<Callback>,
+        duration: Option<u64>,
+    ) -> Self {
         Self {
             credentials,
             main_loop: glib::MainLoop::new(None, false),
             on_stream_created: Arc::new(Mutex::new(on_stream_created)),
+            duration,
         }
     }
 
@@ -131,6 +137,14 @@ impl Publisher {
             session_callbacks,
         )?;
         session.connect(&self.credentials.token)?;
+
+        if let Some(duration) = self.duration {
+            let main_loop = self.main_loop.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(duration));
+                main_loop.quit();
+            });
+        }
 
         self.main_loop.run();
 

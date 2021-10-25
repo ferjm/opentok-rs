@@ -8,13 +8,13 @@ mod cli;
 
 #[async_std::main]
 async fn main() -> anyhow::Result<()> {
-    let credentials = cli::parse_cli().await?;
+    let (credentials, duration) = cli::parse_cli().await?;
 
     opentok::init()?;
 
     log::enable_log(LogLevel::Error);
 
-    Publisher::new(credentials, None).run()?;
+    Publisher::new(credentials, None, duration).run()?;
 
     Ok(opentok::deinit()?)
 }

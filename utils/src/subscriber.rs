@@ -12,13 +12,15 @@ use std::thread;
 pub struct Subscriber {
     credentials: Credentials,
     main_loop: glib::MainLoop,
+    duration: Option<u64>,
 }
 
 impl Subscriber {
-    pub fn new(credentials: Credentials) -> Self {
+    pub fn new(credentials: Credentials, duration: Option<u64>) -> Self {
         Self {
             credentials,
             main_loop: glib::MainLoop::new(None, false),
+            duration,
         }
     }
 
@@ -29,6 +31,7 @@ impl Subscriber {
 
         let render_thread_running = Arc::new(AtomicBool::new(false));
         let render_thread_running_ = render_thread_running.clone();
+        let render_thread_running__ = render_thread_running.clone();
         set_render_callbacks(
             AudioDeviceCallbacks::builder()
                 .get_settings(|| -> AudioDeviceSettings {
@@ -136,7 +139,17 @@ impl Subscriber {
 
         session.connect(&self.credentials.token)?;
 
+        if let Some(duration) = self.duration {
+            let main_loop = self.main_loop.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(duration));
+                main_loop.quit();
+            });
+        }
+
         self.main_loop.run();
+
+        render_thread_running__.store(false, Ordering::Relaxed);
 
         Ok(())
     }

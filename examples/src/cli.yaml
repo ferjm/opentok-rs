@@ -7,6 +7,10 @@ args:
       long: api-key
       about: OpenTok/Vonage API key
       takes_value: true
+  - duration:
+      long: duration
+      about: Time in seconds the example will last
+      takes_value: true
   - session_id:
       short: s
       long: session-id

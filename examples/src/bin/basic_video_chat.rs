@@ -9,7 +9,7 @@ mod cli;
 
 #[async_std::main]
 async fn main() -> anyhow::Result<()> {
-    let credentials = cli::parse_cli().await?;
+    let (credentials, duration) = cli::parse_cli().await?;
 
     opentok::init()?;
 
@@ -20,10 +20,10 @@ async fn main() -> anyhow::Result<()> {
 
     let credentials_ = credentials.clone();
     std::thread::spawn(move || {
-        Subscriber::new(credentials_).run().unwrap();
+        Subscriber::new(credentials_, duration).run().unwrap();
     });
 
-    Publisher::new(credentials, None).run()?;
+    Publisher::new(credentials, None, duration).run()?;
 
     Ok(opentok::deinit()?)
 }
