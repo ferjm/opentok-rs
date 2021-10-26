@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 
@@ -405,6 +406,7 @@ pub struct Session {
     ptr: Arc<AtomicPtr<*mut ffi::otc_session>>,
     callbacks: Arc<Mutex<SessionCallbacks>>,
     connection_state: Arc<Mutex<ConnectionState>>,
+    disconnect_watcher: Arc<Mutex<Option<Sender<()>>>>,
 }
 
 unsafe impl Send for Session {}
@@ -454,6 +456,7 @@ impl Session {
             ptr: Arc::new(AtomicPtr::new(session_ptr as *mut _)),
             callbacks: Arc::new(Mutex::new(callbacks)),
             connection_state: Arc::new(Mutex::new(ConnectionState::Disconnected)),
+            disconnect_watcher: Default::default(),
         };
         INSTANCES
             .lock()
@@ -612,6 +615,9 @@ impl Session {
         if let Ok(callbacks) = self.callbacks.try_lock() {
             callbacks.on_disconnected(self);
         }
+        if let Some(ref disconnect_watcher) = *self.disconnect_watcher.lock().unwrap() {
+            let _ = disconnect_watcher.send(());
+        }
     }
 
     fn on_stream_has_audio_changed(
@@ -724,10 +730,18 @@ impl Drop for Session {
             return;
         }
 
+        let connection_state = self.connection_state.lock().unwrap().clone();
+        if connection_state == ConnectionState::Connected {
+            let (sender, receiver) = mpsc::channel();
+            *self.disconnect_watcher.lock().unwrap() = Some(sender);
+            if self.disconnect().is_ok() {
+                receiver.recv().unwrap();
+            }
+        }
+
         self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
 
         unsafe {
-            // TODO disconnect before deleting.
             ffi::otc_session_delete(ptr as *mut _);
         }
 
