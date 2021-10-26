@@ -117,15 +117,16 @@ impl Publisher {
                 println!("on_error {:?}", error);
             })
             .build();
-        let _publisher = Arc::new(Mutex::new(OpenTokPublisher::new(
+        let publisher = Arc::new(Mutex::new(OpenTokPublisher::new(
             "publisher",
             Some(video_capturer),
             publisher_callbacks,
         )));
 
+        let publisher_ = publisher.clone();
         let session_callbacks = SessionCallbacks::builder()
             .on_connected(move |session| {
-                let _ = session.publish(&*_publisher.lock().unwrap());
+                let _ = session.publish(&*publisher_.lock().unwrap());
             })
             .on_error(|_, error, _| {
                 eprintln!("on_error {:?}", error);
@@ -147,6 +148,10 @@ impl Publisher {
         }
 
         self.main_loop.run();
+
+        publisher.lock().unwrap().unpublish().unwrap();
+
+        session.disconnect().unwrap();
 
         Ok(())
     }
