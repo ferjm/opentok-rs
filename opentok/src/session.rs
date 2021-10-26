@@ -525,6 +525,21 @@ impl Session {
         unsafe { ffi::otc_session_subscribe(ptr as *mut _, subscriber as *mut _) }.into_result()
     }
 
+    /// Stops subscribing to a specific audio/video stream in this session.
+    pub fn unsubscribe(&self, subscriber: &Subscriber) -> OtcResult {
+        let ptr = self.ptr.load(Ordering::Relaxed);
+        if ptr.is_null() {
+            return Err(OtcError::NullError);
+        }
+
+        let subscriber = subscriber.inner();
+        if subscriber.is_null() {
+            return Err(OtcError::NullError);
+        }
+
+        unsafe { ffi::otc_session_unsubscribe(ptr as *mut _, subscriber as *mut _) }.into_result()
+    }
+
     callback_call!(on_connected);
     callback_call!(on_connection_created, *const ffi::otc_connection);
     callback_call!(on_connection_dropped, *const ffi::otc_connection);
