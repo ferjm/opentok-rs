@@ -32,8 +32,14 @@ pub fn init() -> OtcResult {
 /// Destroys the library engine. You should call this function when you are done
 /// executing code that uses the library.
 pub fn deinit() -> OtcResult {
-    publisher::INSTANCES.lock().unwrap().clear();
-    subscriber::INSTANCES.lock().unwrap().clear();
-    session::INSTANCES.lock().unwrap().clear();
+    for (_, publisher) in publisher::INSTANCES.lock().unwrap().drain() {
+        let _ = publisher.unpublish();
+    }
+    for (_, subscriber) in subscriber::INSTANCES.lock().unwrap().drain() {
+        let _ = subscriber.unsubscribe();
+    }
+    for (_, session) in session::INSTANCES.lock().unwrap().drain() {
+        let _ = session.disconnect();
+    }
     unsafe { ffi::otc_destroy().into_result() }
 }

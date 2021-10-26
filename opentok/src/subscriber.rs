@@ -7,6 +7,8 @@ use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_void};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -240,6 +242,8 @@ pub struct Subscriber {
     ptr: Arc<Mutex<Option<*const ffi::otc_subscriber>>>,
     callbacks: Arc<Mutex<SubscriberCallbacks>>,
     stream: OnceCell<Stream>,
+    subscribing: Arc<AtomicBool>,
+    unsubscribe_watcher: Arc<Mutex<Option<Sender<()>>>>,
 }
 
 unsafe impl Send for Subscriber {}
@@ -251,6 +255,8 @@ impl Subscriber {
             ptr: Default::default(),
             callbacks: Arc::new(Mutex::new(callbacks)),
             stream: Default::default(),
+            subscribing: Default::default(),
+            unsubscribe_watcher: Default::default(),
         }
     }
 
@@ -261,9 +267,6 @@ impl Subscriber {
         }
     }
 
-    callback_call!(on_connected, *const ffi::otc_stream);
-    callback_call!(on_disconnected);
-    callback_call!(on_reconnected);
     callback_call!(on_render_frame, *const ffi::otc_video_frame);
     callback_call!(on_video_disabled, ffi::otc_video_reason);
     callback_call!(on_video_enabled, ffi::otc_video_reason);
@@ -273,6 +276,30 @@ impl Subscriber {
     callback_call!(on_video_disable_warning);
     callback_call!(on_video_disable_warning_lifted);
     callback_call!(on_audio_level_updated, f32);
+
+    fn on_connected(&self, stream: *const ffi::otc_stream) {
+        self.subscribing.store(true, Ordering::Relaxed);
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_connected(self, stream.into());
+        }
+    }
+
+    fn on_reconnected(&self) {
+        self.subscribing.store(true, Ordering::Relaxed);
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_reconnected(self);
+        }
+    }
+
+    fn on_disconnected(&self) {
+        self.subscribing.store(false, Ordering::Relaxed);
+        if let Some(ref unsubscribe_watcher) = *self.unsubscribe_watcher.lock().unwrap() {
+            let _ = unsubscribe_watcher.send(());
+        }
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_disconnected(self);
+        }
+    }
 
     fn on_error(&self, error_string: *const c_char, error_code: ffi::otc_subscriber_error_code) {
         if error_string.is_null() {
@@ -434,6 +461,34 @@ impl Subscriber {
         .into_result()
         .map(|_| framerate)
     }
+
+    pub fn unsubscribe(&self) -> OtcResult {
+        if !self.subscribing.load(Ordering::Relaxed) {
+            return Ok(());
+        }
+
+        if self.ptr.lock().unwrap().is_none() {
+            return Err(OtcError::NullError);
+        }
+
+        unsafe {
+            let session =
+                ffi::otc_subscriber_get_session(self.ptr.lock().unwrap().unwrap() as *const _);
+            if !session.is_null() {
+                let (sender, receiver) = mpsc::channel();
+                *self.unsubscribe_watcher.lock().unwrap() = Some(sender);
+                let res = ffi::otc_session_unsubscribe(
+                    session,
+                    self.ptr.lock().unwrap().unwrap() as *mut _,
+                );
+                receiver.recv().unwrap();
+                res
+            } else {
+                return Ok(());
+            }
+        }
+        .into_result()
+    }
 }
 
 impl Drop for Subscriber {
@@ -451,12 +506,10 @@ impl Drop for Subscriber {
             return;
         }
 
+        let _ = self.unsubscribe();
+
         let ptr = self.ptr.lock().unwrap().take().unwrap();
         unsafe {
-            let session = ffi::otc_subscriber_get_session(ptr as *const _);
-            if !session.is_null() {
-                ffi::otc_session_unsubscribe(session, ptr as *mut _);
-            }
             ffi::otc_subscriber_delete(ptr as *mut _);
         }
 

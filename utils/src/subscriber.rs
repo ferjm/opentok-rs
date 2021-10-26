@@ -151,6 +151,8 @@ impl Subscriber {
 
         render_thread_running__.store(false, Ordering::Relaxed);
 
+        session.disconnect().unwrap();
+
         Ok(())
     }
 
