@@ -493,7 +493,7 @@ impl Session {
     }
 
     /// Disconnects the client from this session. All of the client's subscribers
-    /// and publishers will also be will be disconnected from the session.
+    /// and publishers will also be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
         let connection_state = self.connection_state.lock().unwrap().clone();
         if connection_state == ConnectionState::Disconnected

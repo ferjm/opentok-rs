@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -206,6 +206,7 @@ pub struct Publisher {
     ptr: Arc<AtomicPtr<*const ffi::otc_publisher>>,
     capturer: Option<VideoCapturer>,
     callbacks: Arc<Mutex<PublisherCallbacks>>,
+    publishing: Arc<AtomicBool>,
 }
 
 unsafe impl Sync for Publisher {}
@@ -235,6 +236,7 @@ impl Publisher {
             ptr: Arc::new(AtomicPtr::new(ptr as *mut _)),
             capturer,
             callbacks: Arc::new(Mutex::new(callbacks)),
+            publishing: Default::default(),
         };
         INSTANCES
             .lock()
@@ -247,10 +249,22 @@ impl Publisher {
         self.ptr.load(Ordering::Relaxed) as *const _
     }
 
-    callback_call!(on_stream_created, *const ffi::otc_stream);
-    callback_call!(on_stream_destroyed, *const ffi::otc_stream);
     callback_call!(on_render_frame, *const ffi::otc_video_frame);
     callback_call!(on_audio_level_updated, f32);
+
+    fn on_stream_created(&self, stream: *const ffi::otc_stream) {
+        self.publishing.store(true, Ordering::Relaxed);
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_stream_created(self, stream.into());
+        }
+    }
+
+    fn on_stream_destroyed(&self, stream: *const ffi::otc_stream) {
+        self.publishing.store(false, Ordering::Relaxed);
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_stream_destroyed(self, stream.into());
+        }
+    }
 
     fn on_error(&self, error_string: *const c_char, error_code: ffi::otc_publisher_error_code) {
         if error_string.is_null() {
