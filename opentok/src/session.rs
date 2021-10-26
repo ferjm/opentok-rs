@@ -385,10 +385,26 @@ impl SessionCallbacksBuilder {
     }
 }
 
+/// Enumeration of all possible connection states.
+#[derive(Clone, Debug, PartialEq)]
+enum ConnectionState {
+    Connected,
+    Connecting,
+    Disconnected,
+    Disconnecting,
+}
+
+impl Default for ConnectionState {
+    fn default() -> Self {
+        Self::Disconnected
+    }
+}
+
 #[derive(Clone)]
 pub struct Session {
     ptr: Arc<AtomicPtr<*mut ffi::otc_session>>,
     callbacks: Arc<Mutex<SessionCallbacks>>,
+    connection_state: Arc<Mutex<ConnectionState>>,
 }
 
 unsafe impl Send for Session {}
@@ -437,6 +453,7 @@ impl Session {
         let session = Session {
             ptr: Arc::new(AtomicPtr::new(session_ptr as *mut _)),
             callbacks: Arc::new(Mutex::new(callbacks)),
+            connection_state: Arc::new(Mutex::new(ConnectionState::Disconnected)),
         };
         INSTANCES
             .lock()
@@ -455,10 +472,17 @@ impl Session {
     /// * token - The client token for connecting to the session. Check
     /// https://tokbox.com/developer/guides/create-token/
     pub fn connect(&self, token: &str) -> OtcResult {
+        let connection_state = self.connection_state.lock().unwrap().clone();
+        if connection_state == ConnectionState::Connected
+            || connection_state == ConnectionState::Connecting
+        {
+            return Ok(());
+        }
         if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
         let token = std::ffi::CString::new(token).map_err(|_| OtcError::InvalidParam("token"))?;
+        *self.connection_state.lock().unwrap() = ConnectionState::Connecting;
         unsafe {
             ffi::otc_session_connect(self.ptr.load(Ordering::Relaxed) as *mut _, token.as_ptr())
         }
@@ -468,10 +492,16 @@ impl Session {
     /// Disconnects the client from this session. All of the client's subscribers
     /// and publishers will also be will be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
-        // TODO store connection state
+        let connection_state = self.connection_state.lock().unwrap().clone();
+        if connection_state == ConnectionState::Disconnected
+            || connection_state == ConnectionState::Disconnecting
+        {
+            return Ok(());
+        }
         if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
+        *self.connection_state.lock().unwrap() = ConnectionState::Disconnecting;
         unsafe { ffi::otc_session_disconnect(self.ptr.load(Ordering::Relaxed) as *mut _) }
             .into_result()
     }
@@ -540,12 +570,8 @@ impl Session {
         unsafe { ffi::otc_session_unsubscribe(ptr as *mut _, subscriber as *mut _) }.into_result()
     }
 
-    callback_call!(on_connected);
     callback_call!(on_connection_created, *const ffi::otc_connection);
     callback_call!(on_connection_dropped, *const ffi::otc_connection);
-    callback_call!(on_reconnection_started);
-    callback_call!(on_reconnected);
-    callback_call!(on_disconnected);
     callback_call!(on_stream_received, *const ffi::otc_stream);
     callback_call!(on_stream_dropped, *const ffi::otc_stream);
     callback_call!(
@@ -559,6 +585,34 @@ impl Session {
         *const ffi::otc_stream,
         ffi::otc_stream_video_type
     );
+
+    fn on_connected(&self) {
+        *self.connection_state.lock().unwrap() = ConnectionState::Connected;
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_connected(self);
+        }
+    }
+
+    fn on_reconnection_started(&self) {
+        *self.connection_state.lock().unwrap() = ConnectionState::Connecting;
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_reconnection_started(self);
+        }
+    }
+
+    fn on_reconnected(&self) {
+        *self.connection_state.lock().unwrap() = ConnectionState::Connected;
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_reconnected(self);
+        }
+    }
+
+    fn on_disconnected(&self) {
+        *self.connection_state.lock().unwrap() = ConnectionState::Disconnected;
+        if let Ok(callbacks) = self.callbacks.try_lock() {
+            callbacks.on_disconnected(self);
+        }
+    }
 
     fn on_stream_has_audio_changed(
         &self,
