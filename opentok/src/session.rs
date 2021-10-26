@@ -468,6 +468,7 @@ impl Session {
     /// Disconnects the client from this session. All of the client's subscribers
     /// and publishers will also be will be disconnected from the session.
     pub fn disconnect(&self) -> OtcResult {
+        // TODO store connection state
         if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
         }
@@ -475,6 +476,7 @@ impl Session {
             .into_result()
     }
 
+    /// Starts a publisher streaming to the session.
     pub fn publish(&self, publisher: &Publisher) -> OtcResult {
         if self.ptr.load(Ordering::Relaxed).is_null() {
             return Err(OtcError::NullError);
@@ -488,13 +490,39 @@ impl Session {
         .into_result()
     }
 
+    /// Stops publishing from a session, causing the publisher stream to stop.
+    pub fn unpublish(&self, publisher: &Publisher) -> OtcResult {
+        if self.ptr.load(Ordering::Relaxed).is_null() {
+            return Err(OtcError::NullError);
+        }
+
+        let publisher = publisher.inner();
+        if publisher.is_null() {
+            return Err(OtcError::NullError);
+        }
+
+        unsafe {
+            ffi::otc_session_unpublish(
+                self.ptr.load(Ordering::Relaxed) as *mut _,
+                publisher as *mut _,
+            )
+        }
+        .into_result()
+    }
+
+    /// Starts subscribing to an audio/video stream in this session.
     pub fn subscribe(&self, subscriber: &Subscriber) -> OtcResult {
         let ptr = self.ptr.load(Ordering::Relaxed);
         if ptr.is_null() {
             return Err(OtcError::NullError);
         }
-        unsafe { ffi::otc_session_subscribe(ptr as *mut _, subscriber.inner() as *mut _) }
-            .into_result()
+
+        let subscriber = subscriber.inner();
+        if subscriber.is_null() {
+            return Err(OtcError::NullError);
+        }
+
+        unsafe { ffi::otc_session_subscribe(ptr as *mut _, subscriber as *mut _) }.into_result()
     }
 
     callback_call!(on_connected);
@@ -630,6 +658,7 @@ impl Drop for Session {
         self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
 
         unsafe {
+            // TODO disconnect before deleting.
             ffi::otc_session_delete(ptr as *mut _);
         }
 
