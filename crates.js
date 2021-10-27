@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["basic_video_chat","custom_video_capturer","opentok","opentok_rs_sys","opentok_utils","publisher_only"];
+window.ALL_CRATES = ["basic_video_chat","custom_video_capturer","opentok","opentok_rs_sys","opentok_utils","publisher_only","subscriber_only"];

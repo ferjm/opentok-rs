@@ -5,4 +5,5 @@ sourcesIndex["opentok"] = {"name":"","files":["audio_device.rs","connection.rs",
 sourcesIndex["opentok_rs_sys"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["opentok_utils"] = {"name":"","files":["capturer.rs","common.rs","lib.rs","publisher.rs","renderer.rs","subscriber.rs"]};
 sourcesIndex["publisher_only"] = {"name":"","files":["cli.rs","publisher_only.rs"]};
+sourcesIndex["subscriber_only"] = {"name":"","files":["cli.rs","subscriber_only.rs"]};
 createSourceSidebar();
