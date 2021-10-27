@@ -66,7 +66,7 @@ unsafe extern "C" fn get_render_settings(
         return false.into();
     }
     if let Ok(singleton) = SINGLETON.try_lock() {
-        let render_settings = singleton.capture_settings();
+        let render_settings = singleton.render_settings();
         (*settings).sampling_rate = render_settings.sampling_rate;
         (*settings).number_of_channels = render_settings.number_of_channels;
         true
