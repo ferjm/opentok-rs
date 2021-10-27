@@ -5,6 +5,8 @@
 
 These bindings are providing a safe API that can be used to interface with OpenTok.
 
+[Documentation](https://ferjm.github.io/opentok-rs/opentok)
+
 ## Setting up your environment
 To build the OpenTok bindings or anything depending on them, you need to have at least
 the OpenTok 2.19.1 SDK installed. For now the only supported platform is Linux.
