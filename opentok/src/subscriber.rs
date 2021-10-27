@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_void};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -243,7 +242,6 @@ pub struct Subscriber {
     callbacks: Arc<Mutex<SubscriberCallbacks>>,
     stream: OnceCell<Stream>,
     subscribing: Arc<AtomicBool>,
-    unsubscribe_watcher: Arc<Mutex<Option<Sender<()>>>>,
 }
 
 unsafe impl Send for Subscriber {}
@@ -256,7 +254,6 @@ impl Subscriber {
             callbacks: Arc::new(Mutex::new(callbacks)),
             stream: Default::default(),
             subscribing: Default::default(),
-            unsubscribe_watcher: Default::default(),
         }
     }
 
@@ -293,9 +290,6 @@ impl Subscriber {
 
     fn on_disconnected(&self) {
         self.subscribing.store(false, Ordering::Relaxed);
-        if let Some(ref unsubscribe_watcher) = *self.unsubscribe_watcher.lock().unwrap() {
-            let _ = unsubscribe_watcher.send(());
-        }
         if let Ok(callbacks) = self.callbacks.try_lock() {
             callbacks.on_disconnected(self);
         }
@@ -475,14 +469,7 @@ impl Subscriber {
             let session =
                 ffi::otc_subscriber_get_session(self.ptr.lock().unwrap().unwrap() as *const _);
             if !session.is_null() {
-                let (sender, receiver) = mpsc::channel();
-                *self.unsubscribe_watcher.lock().unwrap() = Some(sender);
-                let res = ffi::otc_session_unsubscribe(
-                    session,
-                    self.ptr.lock().unwrap().unwrap() as *mut _,
-                );
-                receiver.recv().unwrap();
-                res
+                ffi::otc_session_unsubscribe(session, self.ptr.lock().unwrap().unwrap() as *mut _)
             } else {
                 return Ok(());
             }

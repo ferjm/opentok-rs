@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 use std::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
-use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -208,7 +207,6 @@ pub struct Publisher {
     capturer: Option<VideoCapturer>,
     callbacks: Arc<Mutex<PublisherCallbacks>>,
     publishing: Arc<AtomicBool>,
-    unpublish_watcher: Arc<Mutex<Option<Sender<()>>>>,
 }
 
 unsafe impl Sync for Publisher {}
@@ -239,7 +237,6 @@ impl Publisher {
             capturer,
             callbacks: Arc::new(Mutex::new(callbacks)),
             publishing: Default::default(),
-            unpublish_watcher: Default::default(),
         };
         INSTANCES
             .lock()
@@ -264,9 +261,6 @@ impl Publisher {
 
     fn on_stream_destroyed(&self, stream: *const ffi::otc_stream) {
         self.publishing.store(false, Ordering::Relaxed);
-        if let Some(ref unpublish_watcher) = *self.unpublish_watcher.lock().unwrap() {
-            let _ = unpublish_watcher.send(());
-        }
         if let Ok(callbacks) = self.callbacks.try_lock() {
             callbacks.on_stream_destroyed(self, stream.into());
         }
@@ -337,11 +331,7 @@ impl Publisher {
         unsafe {
             let session = ffi::otc_publisher_get_session(ptr as *const _);
             if !session.is_null() {
-                let (sender, receiver) = mpsc::channel();
-                *self.unpublish_watcher.lock().unwrap() = Some(sender);
-                let res = ffi::otc_session_unpublish(session, ptr as *mut _);
-                receiver.recv().unwrap();
-                res
+                ffi::otc_session_unpublish(session, ptr as *mut _)
             } else {
                 return Ok(());
             }
