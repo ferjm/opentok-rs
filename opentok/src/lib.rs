@@ -24,14 +24,13 @@ use std::ptr;
 /// Initializes the library. You must call this function before
 /// the execution of any other code using the library.
 pub fn init() -> OtcResult {
-    let result = unsafe { ffi::otc_init(ptr::null_mut()).into_result() };
-    audio_device::initialize().map_err(|_| OtcError::Fatal)?;
-    result
+    unsafe { ffi::otc_init(ptr::null_mut()) }.into_result()
 }
 
 /// Destroys the library engine. You should call this function when you are done
 /// executing code that uses the library.
 pub fn deinit() -> OtcResult {
+    audio_device::AudioDevice::stop();
     for (_, publisher) in publisher::INSTANCES.lock().unwrap().drain() {
         let _ = publisher.unpublish();
     }
@@ -41,5 +40,5 @@ pub fn deinit() -> OtcResult {
     for (_, session) in session::INSTANCES.lock().unwrap().drain() {
         let _ = session.disconnect();
     }
-    unsafe { ffi::otc_destroy().into_result() }
+    unsafe { ffi::otc_destroy() }.into_result()
 }

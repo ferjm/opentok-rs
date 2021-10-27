@@ -83,6 +83,33 @@ macro_rules! ffi_callback_with_return_user_data {
     };
 }
 
+macro_rules! ffi_callback_with_return_singleton {
+    ($fn_name:ident, $target_type:ty, $return_type:ty) => {
+        unsafe extern "C" fn $fn_name(_: $target_type, _: *mut c_void) -> $return_type {
+            let result: OtcBool = if let Ok(singleton) = SINGLETON.try_lock() {
+                singleton.$fn_name().into()
+            } else {
+                false.into()
+            };
+            result.0
+        }
+    };
+    ($fn_name:ident, $target_type:ty, $arg1_type:ty, $return_type:ty) => {
+        unsafe extern "C" fn $fn_name(
+            _: $target_type,
+            user_data: *mut c_void,
+            arg1: $arg1_type,
+        ) -> $return_type {
+            let result: OtcBool = if let Ok(singleton) = SINGLETON.try_lock() {
+                singleton.$fn_name(arg1).into()
+            } else {
+                false.into()
+            };
+            result.0
+        }
+    };
+}
+
 macro_rules! callback {
     ($fn_name:ident, $target:ty) => {
         pub fn $fn_name(&self, target: $target) {

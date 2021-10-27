@@ -1,7 +1,7 @@
 use crate::capturer;
 use crate::common::Credentials;
 
-use opentok::audio_device::{set_capture_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
+use opentok::audio_device::{AudioDevice, AudioDeviceSettings};
 use opentok::publisher::{Publisher as OpenTokPublisher, PublisherCallbacks};
 use opentok::session::{Session, SessionCallbacks};
 use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
@@ -35,39 +35,26 @@ impl Publisher {
     }
 
     pub fn run(&self) -> anyhow::Result<()> {
-        let audio_capture_thread_running = Arc::new(AtomicBool::new(false));
+        let audio_capture_thread_running = Arc::new(AtomicBool::new(true));
         let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-
-        set_capture_callbacks(
-            AudioDeviceCallbacks::builder()
-                .get_settings(move || -> AudioDeviceSettings { AudioDeviceSettings::default() })
-                .start(move |device| {
-                    let device = device.clone();
-                    audio_capture_thread_running.store(true, Ordering::Relaxed);
-                    let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-                    let audio_capturer =
-                        capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
-
-                    thread::spawn(move || loop {
-                        if !audio_capture_thread_running_.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        if let Some(data) = audio_capturer.pull_buffer() {
-                            device.write_capture_data(data);
-                        }
-                        thread::sleep(std::time::Duration::from_micros(10000));
-                    });
-                    Ok(())
-                })
-                .stop(move |_| {
-                    audio_capture_thread_running_.store(false, Ordering::Relaxed);
-                    Ok(())
-                })
-                .build(),
-        )?;
+        thread::spawn(move || {
+            let audio_capturer =
+                capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
+            let audio_device = AudioDevice::get_instance();
+            loop {
+                if !audio_capture_thread_running.load(Ordering::Relaxed) {
+                    break;
+                }
+                if let Some(sample) = audio_capturer.pull_buffer() {
+                    audio_device.lock().unwrap().push_audio_sample(sample);
+                }
+                thread::sleep(std::time::Duration::from_micros(10000));
+            }
+        });
 
         let render_thread_running = Arc::new(AtomicBool::new(false));
         let render_thread_running_ = render_thread_running.clone();
+        let render_thread_running__ = render_thread_running.clone();
         let video_capturer_callbacks = VideoCapturerCallbacks::builder()
             .start(move |video_capturer| {
                 let video_capturer = video_capturer.clone();
@@ -148,6 +135,9 @@ impl Publisher {
         }
 
         self.main_loop.run();
+
+        audio_capture_thread_running_.store(false, Ordering::Relaxed);
+        render_thread_running__.store(false, Ordering::Relaxed);
 
         publisher.lock().unwrap().unpublish().unwrap();
 

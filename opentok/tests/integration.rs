@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use futures::executor::LocalPool;
-    use opentok::audio_device::{set_capture_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
+    use opentok::audio_device::{AudioDevice, AudioDeviceSettings};
     use opentok::log::{self, LogLevel};
     use opentok::publisher::{Publisher, PublisherCallbacks};
     use opentok::session::{Session, SessionCallbacks};
@@ -173,37 +173,22 @@ mod tests {
             })
             .build();
 
-        let audio_capture_thread_running = Arc::new(AtomicBool::new(false));
+        let audio_capture_thread_running = Arc::new(AtomicBool::new(true));
         let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-        let audio_capture_thread_running__ = audio_capture_thread_running.clone();
-        set_capture_callbacks(
-            AudioDeviceCallbacks::builder()
-                .get_settings(move || -> AudioDeviceSettings { AudioDeviceSettings::default() })
-                .start(move |device| {
-                    let device = device.clone();
-                    audio_capture_thread_running.store(true, Ordering::Relaxed);
-                    let audio_capture_thread_running_ = audio_capture_thread_running.clone();
-                    let audio_capturer =
-                        capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
-
-                    std::thread::spawn(move || loop {
-                        if !audio_capture_thread_running_.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        if let Some(data) = audio_capturer.pull_buffer() {
-                            device.write_capture_data(data);
-                        }
-                        std::thread::sleep(std::time::Duration::from_micros(10000));
-                    });
-                    Ok(())
-                })
-                .stop(move |_| {
-                    audio_capture_thread_running_.store(false, Ordering::Relaxed);
-                    Ok(())
-                })
-                .build(),
-        )
-        .unwrap();
+        std::thread::spawn(move || {
+            let audio_capturer =
+                capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
+            let audio_device = AudioDevice::get_instance();
+            loop {
+                if !audio_capture_thread_running.load(Ordering::Relaxed) {
+                    break;
+                }
+                if let Some(sample) = audio_capturer.pull_buffer() {
+                    audio_device.lock().unwrap().push_audio_sample(sample);
+                }
+                std::thread::sleep(std::time::Duration::from_micros(10000));
+            }
+        });
 
         let render_thread_running = Arc::new(AtomicBool::new(false));
         let render_thread_running_ = render_thread_running.clone();
@@ -266,7 +251,7 @@ mod tests {
 
         receiver.recv().unwrap();
 
-        audio_capture_thread_running__.store(false, Ordering::Relaxed);
+        audio_capture_thread_running_.store(false, Ordering::Relaxed);
         render_thread_running__.store(false, Ordering::Relaxed);
 
         test_teardown();

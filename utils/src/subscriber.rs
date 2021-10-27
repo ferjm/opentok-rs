@@ -1,13 +1,11 @@
 use crate::common::Credentials;
 use crate::renderer;
 
-use opentok::audio_device::{set_render_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
+use opentok::audio_device::AudioDevice;
 use opentok::session::{Session, SessionCallbacks};
 use opentok::subscriber::{Subscriber as OpenTokSubscriber, SubscriberCallbacks};
 use opentok::video_frame::FramePlane;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::thread;
 
 pub struct Subscriber {
     credentials: Credentials,
@@ -29,41 +27,15 @@ impl Subscriber {
         let renderer_ = renderer.clone();
         let renderer__ = renderer.clone();
 
-        let render_thread_running = Arc::new(AtomicBool::new(false));
-        let render_thread_running_ = render_thread_running.clone();
-        let render_thread_running__ = render_thread_running.clone();
-        set_render_callbacks(
-            AudioDeviceCallbacks::builder()
-                .get_settings(|| -> AudioDeviceSettings {
-                    AudioDeviceSettings {
-                        sampling_rate: 44100,
-                        number_of_channels: 1,
-                    }
-                })
-                .start(move |device| {
-                    let device = device.clone();
-                    render_thread_running.store(true, Ordering::Relaxed);
-                    let render_thread_running_ = render_thread_running.clone();
-                    let renderer_ = renderer__.clone();
-                    thread::spawn(move || loop {
-                        if !render_thread_running_.load(Ordering::Relaxed) {
-                            break;
-                        }
-                        if let Some(sample) = device.read_sample() {
-                            if let Some(r) = renderer_.lock().unwrap().as_ref() {
-                                r.render_audio_sample(sample);
-                            }
-                        }
-                        thread::sleep(std::time::Duration::from_micros(10000));
-                    });
-                    Ok(())
-                })
-                .stop(move |_| {
-                    render_thread_running_.store(false, Ordering::Relaxed);
-                    Ok(())
-                })
-                .build(),
-        )?;
+        let audio_device = AudioDevice::get_instance();
+        audio_device
+            .lock()
+            .unwrap()
+            .set_on_audio_sample_callback(Box::new(move |sample| {
+                if let Some(renderer) = renderer.lock().unwrap().as_ref() {
+                    renderer.render_audio_sample(sample);
+                }
+            }));
 
         let subscriber_callbacks = SubscriberCallbacks::builder()
             .on_render_frame(move |_, frame| {
@@ -92,7 +64,7 @@ impl Subscriber {
                     frame.get_plane_stride(FramePlane::U).unwrap(),
                     frame.get_plane_stride(FramePlane::V).unwrap(),
                 ];
-                renderer
+                renderer_
                     .lock()
                     .unwrap()
                     .as_ref()
@@ -115,7 +87,7 @@ impl Subscriber {
 
         let session_callbacks = SessionCallbacks::builder()
             .on_stream_received(move |session, stream| {
-                *renderer_.lock().unwrap() = Some(renderer::Renderer::new().unwrap());
+                *renderer__.lock().unwrap() = Some(renderer::Renderer::new().unwrap());
                 println!(
                     "stream width {:?} height {:?}",
                     stream.get_video_width(),
@@ -148,8 +120,6 @@ impl Subscriber {
         }
 
         self.main_loop.run();
-
-        render_thread_running__.store(false, Ordering::Relaxed);
 
         session.disconnect().unwrap();
 
