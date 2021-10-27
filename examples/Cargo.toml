@@ -30,3 +30,6 @@ name = "custom_video_capturer"
 
 [[bin]]
 name = "publisher_only"
+
+[[bin]]
+name = "subscriber_only"
