@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["VideoCapturer",""],["VideoCapturerCallbacks",""],["VideoCapturerCallbacksBuilder",""],["VideoCapturerSettings","Settings for a VideoCapturer."]]});

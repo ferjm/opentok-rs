@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["SessionError","Errors associated with an OpenTok session."]],"struct":[["INSTANCES",""],["Session",""],["SessionCallbacks",""],["SessionCallbacksBuilder",""]]});

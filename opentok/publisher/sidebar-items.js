@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PublisherError","This enumeration represents all the possible error types associated with a publisher."]],"struct":[["INSTANCES",""],["Publisher",""],["PublisherCallbacks","Callbacks triggered in response to events related to an OpenTok publisher."],["PublisherCallbacksBuilder",""]]});
