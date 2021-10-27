@@ -16,6 +16,7 @@ anyhow = "1"
 [dev-dependencies]
 futures = "0.3.17"
 opentok-server = { git = "https://github.com/ferjm/opentok-server-rs", branch = "main" }
+opentok-utils = { path = "../utils" }
 
 [dev-dependencies.cargo-husky]
 version = "1.5.0"

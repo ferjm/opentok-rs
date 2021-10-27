@@ -1,9 +1,14 @@
 #[cfg(test)]
 mod tests {
     use futures::executor::LocalPool;
+    use opentok::audio_device::{set_capture_callbacks, AudioDeviceCallbacks, AudioDeviceSettings};
     use opentok::log::{self, LogLevel};
+    use opentok::publisher::{Publisher, PublisherCallbacks};
     use opentok::session::{Session, SessionCallbacks};
+    use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
+    use opentok::video_frame::VideoFrame;
     use opentok_server::{OpenTok, SessionOptions, TokenRole};
+    use opentok_utils::capturer;
     use std::env;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc;
@@ -148,6 +153,121 @@ mod tests {
         session.connect(&token).unwrap();
 
         receiver.recv().unwrap();
+
+        test_teardown();
+    }
+
+    #[test]
+    fn test_publisher() {
+        let (api_key, session_id, token) = setup_test();
+
+        let (sender, receiver) = mpsc::channel();
+        let sender = Arc::new(Mutex::new(sender));
+
+        let publisher_callbacks = PublisherCallbacks::builder()
+            .on_stream_created(move |_, _| {
+                sender.lock().unwrap().send(()).unwrap();
+            })
+            .on_error(|_, error, _| {
+                println!("on_error {:?}", error);
+            })
+            .build();
+
+        let audio_capture_thread_running = Arc::new(AtomicBool::new(false));
+        let audio_capture_thread_running_ = audio_capture_thread_running.clone();
+        let audio_capture_thread_running__ = audio_capture_thread_running.clone();
+        set_capture_callbacks(
+            AudioDeviceCallbacks::builder()
+                .get_settings(move || -> AudioDeviceSettings { AudioDeviceSettings::default() })
+                .start(move |device| {
+                    let device = device.clone();
+                    audio_capture_thread_running.store(true, Ordering::Relaxed);
+                    let audio_capture_thread_running_ = audio_capture_thread_running.clone();
+                    let audio_capturer =
+                        capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
+
+                    std::thread::spawn(move || loop {
+                        if !audio_capture_thread_running_.load(Ordering::Relaxed) {
+                            break;
+                        }
+                        if let Some(data) = audio_capturer.pull_buffer() {
+                            device.write_capture_data(data);
+                        }
+                        std::thread::sleep(std::time::Duration::from_micros(10000));
+                    });
+                    Ok(())
+                })
+                .stop(move |_| {
+                    audio_capture_thread_running_.store(false, Ordering::Relaxed);
+                    Ok(())
+                })
+                .build(),
+        )
+        .unwrap();
+
+        let render_thread_running = Arc::new(AtomicBool::new(false));
+        let render_thread_running_ = render_thread_running.clone();
+        let render_thread_running__ = render_thread_running.clone();
+        let video_capturer_callbacks = VideoCapturerCallbacks::builder()
+            .start(move |video_capturer| {
+                let video_capturer = video_capturer.clone();
+                render_thread_running.store(true, Ordering::Relaxed);
+                let render_thread_running_ = render_thread_running.clone();
+                std::thread::spawn(move || {
+                    let settings = VideoCapturerSettings::default();
+                    let capturer = capturer::Capturer::new(&settings).unwrap();
+                    let mut buf: Vec<u8> = vec![];
+                    loop {
+                        if !render_thread_running_.load(Ordering::Relaxed) {
+                            break;
+                        }
+                        if let Ok(buffer) = capturer.pull_buffer() {
+                            buf.extend_from_slice((*buffer).as_ref());
+                            let frame = VideoFrame::new(
+                                settings.format,
+                                settings.width,
+                                settings.height,
+                                buf.clone(),
+                            );
+                            video_capturer.provide_frame(0, &frame).unwrap();
+                            buf.clear();
+                        }
+                        std::thread::sleep(std::time::Duration::from_micros(30 * 1_000));
+                    }
+                });
+                Ok(())
+            })
+            .stop(move |_| {
+                render_thread_running_.store(false, Ordering::Relaxed);
+                Ok(())
+            })
+            .build();
+        let video_capturer = VideoCapturer::new(Default::default(), video_capturer_callbacks);
+
+        let publisher = Arc::new(Mutex::new(Publisher::new(
+            "publisher",
+            Some(video_capturer),
+            publisher_callbacks,
+        )));
+
+        let publisher_ = publisher.clone();
+        let session_callbacks = SessionCallbacks::builder()
+            .on_connected(move |session| {
+                let _ = session.publish(&*publisher_.lock().unwrap());
+            })
+            .on_error(|_, error, _| {
+                panic!("{:?}", error);
+            })
+            .build();
+
+        let session = Session::new(&api_key, &session_id, session_callbacks).unwrap();
+
+        session.connect(&token).unwrap();
+
+        receiver.recv().unwrap();
+
+        audio_capture_thread_running__.store(false, Ordering::Relaxed);
+        render_thread_running__.store(false, Ordering::Relaxed);
 
         test_teardown();
     }
