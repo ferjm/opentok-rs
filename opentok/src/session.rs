@@ -415,7 +415,7 @@ unsafe impl Sync for Session {}
 impl Session {
     /// Creates a new OpenTok session.
     ///
-    /// * api_key: Your OpenTok API key. You can get it from https://tokbox.com/account
+    /// * api_key: Your OpenTok API key. You can get it from <https://tokbox.com/account>
     /// * session_id: The identifier of the session.
     /// * callbacks: An instance of SessionCallbacks containing the handlers for events
     /// related to the session.
@@ -473,7 +473,7 @@ impl Session {
     /// Connects a client to an OpenTok session.
     ///
     /// * token - The client token for connecting to the session. Check
-    /// https://tokbox.com/developer/guides/create-token/
+    /// <https://tokbox.com/developer/guides/create-token/>
     pub fn connect(&self, token: &str) -> OtcResult {
         let connection_state = self.connection_state.lock().unwrap().clone();
         if connection_state == ConnectionState::Connected
