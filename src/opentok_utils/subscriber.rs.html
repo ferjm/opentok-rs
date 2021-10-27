@@ -130,47 +130,15 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common::Credentials</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::renderer</span>;
 
-<span class="kw">use</span> <span class="ident">opentok::audio_device</span>::{<span class="ident">set_render_callbacks</span>, <span class="ident">AudioDeviceCallbacks</span>, <span class="ident">AudioDeviceSettings</span>};
+<span class="kw">use</span> <span class="ident">opentok::audio_device::AudioDevice</span>;
 <span class="kw">use</span> <span class="ident">opentok::session</span>::{<span class="ident">Session</span>, <span class="ident">SessionCallbacks</span>};
 <span class="kw">use</span> <span class="ident">opentok::subscriber</span>::{<span class="ident">Subscriber</span> <span class="kw">as</span> <span class="ident">OpenTokSubscriber</span>, <span class="ident">SubscriberCallbacks</span>};
 <span class="kw">use</span> <span class="ident">opentok::video_frame::FramePlane</span>;
-<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
-<span class="kw">use</span> <span class="ident">std::thread</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Subscriber</span> {
     <span class="ident">credentials</span>: <span class="ident">Credentials</span>,
@@ -192,41 +160,15 @@
         <span class="kw">let</span> <span class="ident">renderer_</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">renderer__</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">clone</span>();
 
-        <span class="kw">let</span> <span class="ident">render_thread_running</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>));
-        <span class="kw">let</span> <span class="ident">render_thread_running_</span> <span class="op">=</span> <span class="ident">render_thread_running</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">render_thread_running__</span> <span class="op">=</span> <span class="ident">render_thread_running</span>.<span class="ident">clone</span>();
-        <span class="ident">set_render_callbacks</span>(
-            <span class="ident">AudioDeviceCallbacks::builder</span>()
-                .<span class="ident">get_settings</span>(<span class="op">|</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
-                    <span class="ident">AudioDeviceSettings</span> {
-                        <span class="ident">sampling_rate</span>: <span class="number">44100</span>,
-                        <span class="ident">number_of_channels</span>: <span class="number">1</span>,
-                    }
-                })
-                .<span class="ident">start</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">device</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">device</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">clone</span>();
-                    <span class="ident">render_thread_running</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
-                    <span class="kw">let</span> <span class="ident">render_thread_running_</span> <span class="op">=</span> <span class="ident">render_thread_running</span>.<span class="ident">clone</span>();
-                    <span class="kw">let</span> <span class="ident">renderer_</span> <span class="op">=</span> <span class="ident">renderer__</span>.<span class="ident">clone</span>();
-                    <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">render_thread_running_</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
-                            <span class="kw">break</span>;
-                        }
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sample</span>) <span class="op">=</span> <span class="ident">device</span>.<span class="ident">read_sample</span>() {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r</span>) <span class="op">=</span> <span class="ident">renderer_</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>() {
-                                <span class="ident">r</span>.<span class="ident">render_audio_sample</span>(<span class="ident">sample</span>);
-                            }
-                        }
-                        <span class="ident">thread::sleep</span>(<span class="ident">std::time::Duration::from_micros</span>(<span class="number">10000</span>));
-                    });
-                    <span class="prelude-val">Ok</span>(())
-                })
-                .<span class="ident">stop</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">render_thread_running_</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
-                    <span class="prelude-val">Ok</span>(())
-                })
-                .<span class="ident">build</span>(),
-        )<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">audio_device</span> <span class="op">=</span> <span class="ident">AudioDevice::get_instance</span>();
+        <span class="ident">audio_device</span>
+            .<span class="ident">lock</span>()
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">set_on_audio_sample_callback</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">sample</span><span class="op">|</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">renderer</span>) <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>() {
+                    <span class="ident">renderer</span>.<span class="ident">render_audio_sample</span>(<span class="ident">sample</span>);
+                }
+            }));
 
         <span class="kw">let</span> <span class="ident">subscriber_callbacks</span> <span class="op">=</span> <span class="ident">SubscriberCallbacks::builder</span>()
             .<span class="ident">on_render_frame</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">frame</span><span class="op">|</span> {
@@ -255,7 +197,7 @@
                     <span class="ident">frame</span>.<span class="ident">get_plane_stride</span>(<span class="ident">FramePlane::U</span>).<span class="ident">unwrap</span>(),
                     <span class="ident">frame</span>.<span class="ident">get_plane_stride</span>(<span class="ident">FramePlane::V</span>).<span class="ident">unwrap</span>(),
                 ];
-                <span class="ident">renderer</span>
+                <span class="ident">renderer_</span>
                     .<span class="ident">lock</span>()
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">as_ref</span>()
@@ -278,7 +220,7 @@
 
         <span class="kw">let</span> <span class="ident">session_callbacks</span> <span class="op">=</span> <span class="ident">SessionCallbacks::builder</span>()
             .<span class="ident">on_stream_received</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">session</span>, <span class="ident">stream</span><span class="op">|</span> {
-                <span class="kw-2">*</span><span class="ident">renderer_</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">renderer::Renderer::new</span>().<span class="ident">unwrap</span>());
+                <span class="kw-2">*</span><span class="ident">renderer__</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">renderer::Renderer::new</span>().<span class="ident">unwrap</span>());
                 <span class="macro">println!</span>(
                     <span class="string">&quot;stream width {:?} height {:?}&quot;</span>,
                     <span class="ident">stream</span>.<span class="ident">get_video_width</span>(),
@@ -311,8 +253,6 @@
         }
 
         <span class="self">self</span>.<span class="ident">main_loop</span>.<span class="ident">run</span>();
-
-        <span class="ident">render_thread_running__</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
 
         <span class="ident">session</span>.<span class="ident">disconnect</span>().<span class="ident">unwrap</span>();
 

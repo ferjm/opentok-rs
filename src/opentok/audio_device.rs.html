@@ -253,258 +253,83 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
 </pre><pre class="rust">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::enums</span>::{<span class="ident">IntoResult</span>, <span class="ident">OtcBool</span>, <span class="ident">OtcError</span>, <span class="ident">OtcResult</span>};
+<span class="doccomment">/// The OpenTok SDK handles all audio related work through a singleton instance</span>
+<span class="doccomment">/// of `otc_audio_device` which persists throughout the lifetime of the OpenTok</span>
+<span class="doccomment">/// library.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Unfortunately, the SDK expose no way of having a dedicated audio device</span>
+<span class="doccomment">/// per session, which makes many use cases that differs from the basic video</span>
+<span class="doccomment">/// chat demo pretty hard to implement. In summary, if you want independent</span>
+<span class="doccomment">/// audio devices, you likely need to have a multiprocess application, where</span>
+<span class="doccomment">/// an independent opentok::init is executed per process.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Likewise, there is currently no way to get independent audio samples</span>
+<span class="doccomment">/// per participant in a session. The SDK exposes an audio stream which is</span>
+<span class="doccomment">/// a mix of all participants&#39; audio streams. Check</span>
+<span class="doccomment">/// &lt;https://github.com/opentok/opentok-linux-sdk-samples/issues/25&gt;</span>
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::enums</span>::{<span class="ident">IntoResult</span>, <span class="ident">OtcBool</span>, <span class="ident">OtcResult</span>};
 
 <span class="kw">use</span> <span class="ident">lazy_static::lazy_static</span>;
 <span class="kw">use</span> <span class="ident">log::warn</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">std::os::raw::c_void</span>;
+<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">Ordering</span>};
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 
-<span class="comment">// TODO: Get rid of INSTANCES. We need this currently because of some of the</span>
-<span class="comment">// macro calls remaining in this module.</span>
 <span class="macro">lazy_static!</span> {
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">INSTANCES</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Default::default</span>();
-    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">SINGLETON</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>);
+    <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">SINGLETON</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">AudioDevice::new</span>()));
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AudioDeviceError</span> {
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Unable to override render callbacks&quot;</span>)]</span>
-    <span class="ident">RenderCallbacksOverrideNotAllowed</span>,
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Unable to override capture callbacks&quot;</span>)]</span>
-    <span class="ident">CaptureCallbacksOverrideNotAllowed</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Audio device singleton not configured&quot;</span>)]</span>
     <span class="ident">MissingAudioDevice</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Audio device already initialized&quot;</span>)]</span>
     <span class="ident">InitializationFailure</span>,
 }
 
-<span class="doccomment">/// Initialize the global AudioDevice. This is called immediately after the</span>
-<span class="doccomment">/// library initialization. The AudioDevice has no associated callback by</span>
-<span class="doccomment">/// default. The application call `set_render_callbacks()` and/or</span>
-<span class="doccomment">/// `set_capture_callbacks()` to have the AudioDevice configured.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AudioDeviceError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">SINGLETON</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">is_some</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-    }
-    <span class="kw">let</span> <span class="ident">audio_device</span> <span class="op">=</span> <span class="ident">AudioDevice::new</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AudioDeviceError::InitializationFailure</span>)<span class="question-mark">?</span>;
-    <span class="kw-2">*</span><span class="ident">SINGLETON</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">audio_device</span>);
-    <span class="prelude-val">Ok</span>(())
-}
-
-<span class="doccomment">/// Associate render callbacks to the AudioDevice singleton. This should be</span>
-<span class="doccomment">/// called if the application wants to use a custom audio renderer.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_render_callbacks</span>(<span class="ident">callbacks</span>: <span class="ident">AudioDeviceCallbacks</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AudioDeviceError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">d</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">SINGLETON</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-        <span class="kw">return</span> <span class="ident">d</span>.<span class="ident">set_render_callbacks</span>(<span class="ident">callbacks</span>);
-    }
-    <span class="prelude-val">Err</span>(<span class="ident">AudioDeviceError::MissingAudioDevice</span>)
-}
-
-<span class="doccomment">/// Associate capture callbacks to the AudioDevice singleton. This should be</span>
-<span class="doccomment">/// called if the application wants to use a custom audio capturer.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_capture_callbacks</span>(<span class="ident">callbacks</span>: <span class="ident">AudioDeviceCallbacks</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AudioDeviceError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">d</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">SINGLETON</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-        <span class="kw">return</span> <span class="ident">d</span>.<span class="ident">set_capture_callbacks</span>(<span class="ident">callbacks</span>);
-    }
-    <span class="prelude-val">Err</span>(<span class="ident">AudioDeviceError::MissingAudioDevice</span>)
-}
-
-<span class="macro">ffi_callback_with_return_user_data!</span>(<span class="ident">start_capturer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
-<span class="macro">ffi_callback_with_return_user_data!</span>(<span class="ident">stop_capturer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
-<span class="macro">ffi_callback_with_return_user_data!</span>(<span class="ident">start_renderer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
-<span class="macro">ffi_callback_with_return_user_data!</span>(<span class="ident">stop_renderer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
+<span class="macro">ffi_callback_with_return_singleton!</span>(<span class="ident">start_capturer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
+<span class="macro">ffi_callback_with_return_singleton!</span>(<span class="ident">stop_capturer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
+<span class="macro">ffi_callback_with_return_singleton!</span>(<span class="ident">start_renderer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
+<span class="macro">ffi_callback_with_return_singleton!</span>(<span class="ident">stop_renderer</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>, <span class="ident">ffi::otc_bool</span>);
 
 <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">get_capture_settings</span>(
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>,
-    <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_audio_device_settings</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_bool</span> {
     <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="bool-val">false</span>.<span class="ident">into</span>();
     }
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callbacks</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">INSTANCES</span>
-        .<span class="ident">lock</span>()
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">user_data</span> <span class="kw">as</span> <span class="ident">usize</span>))
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">capture_callbacks</span>
-        .<span class="ident">lock</span>()
-        .<span class="ident">unwrap</span>()
-    {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">callbacks</span>.<span class="ident">get_settings</span>();
-        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">sampling_rate</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">sampling_rate</span>;
-        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">number_of_channels</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">number_of_channels</span>;
-        <span class="bool-val">true</span>.<span class="ident">into</span>()
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">singleton</span>) <span class="op">=</span> <span class="ident">SINGLETON</span>.<span class="ident">try_lock</span>() {
+        <span class="kw">let</span> <span class="ident">capture_settings</span> <span class="op">=</span> <span class="ident">singleton</span>.<span class="ident">capture_settings</span>();
+        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">sampling_rate</span> <span class="op">=</span> <span class="ident">capture_settings</span>.<span class="ident">sampling_rate</span>;
+        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">number_of_channels</span> <span class="op">=</span> <span class="ident">capture_settings</span>.<span class="ident">number_of_channels</span>;
+        <span class="bool-val">true</span>
     } <span class="kw">else</span> {
-        <span class="bool-val">false</span>.<span class="ident">into</span>()
+        <span class="bool-val">false</span>
     }
+    .<span class="ident">into</span>()
 }
 
 <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">get_render_settings</span>(
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>,
-    <span class="ident">user_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+    <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_audio_device_settings</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_bool</span> {
     <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="bool-val">false</span>.<span class="ident">into</span>();
     }
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callbacks</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">INSTANCES</span>
-        .<span class="ident">lock</span>()
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">user_data</span> <span class="kw">as</span> <span class="ident">usize</span>))
-        .<span class="ident">unwrap</span>()
-        .<span class="ident">render_callbacks</span>
-        .<span class="ident">lock</span>()
-        .<span class="ident">unwrap</span>()
-    {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">callbacks</span>.<span class="ident">get_settings</span>();
-        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">sampling_rate</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">sampling_rate</span>;
-        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">number_of_channels</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">number_of_channels</span>;
-        <span class="bool-val">true</span>.<span class="ident">into</span>()
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">singleton</span>) <span class="op">=</span> <span class="ident">SINGLETON</span>.<span class="ident">try_lock</span>() {
+        <span class="kw">let</span> <span class="ident">render_settings</span> <span class="op">=</span> <span class="ident">singleton</span>.<span class="ident">capture_settings</span>();
+        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">sampling_rate</span> <span class="op">=</span> <span class="ident">render_settings</span>.<span class="ident">sampling_rate</span>;
+        (<span class="kw-2">*</span><span class="ident">settings</span>).<span class="ident">number_of_channels</span> <span class="op">=</span> <span class="ident">render_settings</span>.<span class="ident">number_of_channels</span>;
+        <span class="bool-val">true</span>
     } <span class="kw">else</span> {
-        <span class="bool-val">false</span>.<span class="ident">into</span>()
+        <span class="bool-val">false</span>
     }
-}
-
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AudioDeviceCallbacks</span> {
-    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">get_settings</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">AudioDeviceCallbacks</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceCallbacksBuilder</span> {
-        <span class="ident">AudioDeviceCallbacksBuilder::default</span>()
-    }
-
-    <span class="macro">callback_with_return!</span>(<span class="ident">start</span>, <span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>, <span class="ident">OtcResult</span>);
-    <span class="macro">callback_with_return!</span>(<span class="ident">stop</span>, <span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>, <span class="ident">OtcResult</span>);
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_settings</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">callback</span>()
-        } <span class="kw">else</span> {
-            <span class="macro">warn!</span>(<span class="string">&quot;No get_settings callback, returning default AudioDeviceSettings&quot;</span>);
-            <span class="ident">AudioDeviceSettings::default</span>()
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AudioDeviceCallbacksBuilder</span> {
-    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">get_settings</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">AudioDeviceCallbacksBuilder</span> {
-    <span class="macro">callback_setter_with_return!</span>(<span class="ident">start</span>, <span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>, <span class="ident">OtcResult</span>);
-    <span class="macro">callback_setter_with_return!</span>(<span class="ident">stop</span>, <span class="kw-2">&amp;</span><span class="ident">AudioDevice</span>, <span class="ident">OtcResult</span>);
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_settings</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
-        <span class="self">self</span>,
-        <span class="ident">callback</span>: <span class="ident">F</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">get_settings</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">callback</span>)),
-            ..<span class="self">self</span>
-        }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceCallbacks</span> {
-        <span class="ident">AudioDeviceCallbacks</span> {
-            <span class="ident">start</span>: <span class="self">self</span>.<span class="ident">start</span>,
-            <span class="ident">stop</span>: <span class="self">self</span>.<span class="ident">stop</span>,
-            <span class="ident">get_settings</span>: <span class="self">self</span>.<span class="ident">get_settings</span>,
-        }
-    }
+    .<span class="ident">into</span>()
 }
 
 <span class="doccomment">/// Raw data holder for audio samples.</span>
@@ -535,24 +360,29 @@
     }
 }
 
+<span class="kw">type</span> <span class="ident">OnAudioSampleCallback</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">AudioSample</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>;
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AudioDevice</span> {
-    <span class="ident">instance_id</span>: <span class="ident">usize</span>,
-    <span class="ident">render_callbacks</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioDeviceCallbacks</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">capture_callbacks</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioDeviceCallbacks</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">ffi_callbacks</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">ffi::otc_audio_device_callbacks</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">capturer_ready</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicBool</span><span class="op">&gt;</span>,
+    <span class="ident">capture_settings</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDeviceSettings</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">render_thread_running</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">AtomicBool</span><span class="op">&gt;</span>,
+    <span class="ident">render_settings</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDeviceSettings</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">on_audio_sample_callbacks</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OnAudioSampleCallback</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">AudioDevice</span> {}
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">AudioDevice</span> {}
 
 <span class="kw">impl</span> <span class="ident">AudioDevice</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">instance_id</span> <span class="op">=</span> <span class="ident">INSTANCES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">device</span> <span class="op">=</span> <span class="self">Self</span> {
-            <span class="ident">instance_id</span>,
-            <span class="ident">render_callbacks</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>)),
-            <span class="ident">capture_callbacks</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>)),
+            <span class="ident">capturer_ready</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">capture_settings</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">render_thread_running</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">render_settings</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">on_audio_sample_callbacks</span>: <span class="ident">Default::default</span>(),
             <span class="ident">ffi_callbacks</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">ffi::otc_audio_device_callbacks</span> {
                 <span class="ident">init</span>: <span class="prelude-val">None</span>,
                 <span class="ident">destroy</span>: <span class="prelude-val">None</span>,
@@ -572,102 +402,110 @@
                 <span class="ident">is_renderer_started</span>: <span class="prelude-val">None</span>,
                 <span class="ident">get_estimated_render_delay</span>: <span class="prelude-val">None</span>,
                 <span class="ident">get_render_settings</span>: <span class="prelude-val">Some</span>(<span class="ident">get_render_settings</span>),
-                <span class="ident">user_data</span>: <span class="ident">instance_id</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+                <span class="ident">user_data</span>: <span class="ident">std::ptr::null_mut</span>(),
                 <span class="ident">reserved</span>: <span class="ident">std::ptr::null_mut</span>(),
             })),
         };
-        <span class="ident">INSTANCES</span>
+
+        <span class="kw">unsafe</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span>
+                <span class="ident">ffi::otc_set_audio_device</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">device</span>.<span class="ident">ffi_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()
+                    <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device_callbacks</span>)
+                .<span class="ident">into_result</span>()
+            {
+                <span class="macro">warn!</span>(<span class="string">&quot;Could not set audio device callbacks. {}&quot;</span>, <span class="ident">e</span>);
+            }
+        }
+
+        <span class="ident">device</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_instance</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">SINGLETON</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stop</span>() {
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SINGLETON</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">stop_renderer</span>();
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">override_capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">settings</span>: <span class="ident">AudioDeviceSettings</span>) {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">settings</span>;
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">override_render_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">settings</span>: <span class="ident">AudioDeviceSettings</span>) {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">settings</span>;
+    }
+
+    <span class="kw">fn</span> <span class="ident">capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">render_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_on_audio_sample_callback</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">callback</span>: <span class="ident">OnAudioSampleCallback</span>) {
+        <span class="self">self</span>.<span class="ident">on_audio_sample_callbacks</span>
             .<span class="ident">lock</span>()
             .<span class="ident">unwrap</span>()
-            .<span class="ident">insert</span>(<span class="ident">instance_id</span>, <span class="ident">device</span>.<span class="ident">clone</span>());
-
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">ffi::otc_set_audio_device</span>(
-                <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">device</span>.<span class="ident">ffi_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device_callbacks</span>
-            )
-            .<span class="ident">into_result</span>()
-        };
-
-        <span class="ident">r</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">device</span>)
+            .<span class="ident">push</span>(<span class="ident">callback</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_sample</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioSample</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get_settings</span>();
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> (<span class="ident">settings</span>.<span class="ident">sampling_rate</span> <span class="op">/</span> <span class="number">100</span>) <span class="op">*</span> <span class="ident">settings</span>.<span class="ident">number_of_channels</span>;
-                <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
-                        <span class="ident">ffi::otc_audio_device_read_render_data</span>(<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>);
-                    <span class="ident">data</span>.<span class="ident">set_len</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                    <span class="ident">data</span>
-                };
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">d</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">let</span> <span class="ident">sample</span> <span class="op">=</span> <span class="ident">AudioSample</span> {
-                        <span class="ident">data</span>: <span class="ident">AudioSampleData</span>(<span class="ident">d</span>),
-                        <span class="ident">sampling_rate</span>: <span class="ident">settings</span>.<span class="ident">sampling_rate</span>,
-                        <span class="ident">number_of_channels</span>: <span class="ident">settings</span>.<span class="ident">number_of_channels</span>,
-                    };
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">sample</span>);
-                }
-                <span class="prelude-val">None</span>
-            }
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_audio_sample</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">AudioSampleData</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">capturer_ready</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
+            <span class="macro">warn!</span>(<span class="string">&quot;Audio capturer is not ready yet. Dropping audio sample&quot;</span>);
+            <span class="kw">return</span>;
         }
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_capture_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">data</span>: <span class="ident">AudioSampleData</span>) {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">data</span>.<span class="number">0</span>.<span class="ident">len</span>();
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_audio_device_write_capture_data</span>(<span class="ident">data</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>(), <span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>) };
     }
 
-    <span class="kw">fn</span> <span class="ident">set_render_callbacks</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">callbacks</span>: <span class="ident">AudioDeviceCallbacks</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AudioDeviceError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">render_callbacks</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_callbacks</span>.<span class="ident">lock</span>();
-        <span class="kw">if</span> <span class="ident">render_callbacks</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">is_some</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AudioDeviceError::RenderCallbacksOverrideNotAllowed</span>);
-        }
-        <span class="kw-2">*</span><span class="ident">render_callbacks</span>.<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">callbacks</span>);
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn</span> <span class="ident">set_capture_callbacks</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">callbacks</span>: <span class="ident">AudioDeviceCallbacks</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">AudioDeviceError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">capture_callbacks</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">capture_callbacks</span>.<span class="ident">lock</span>();
-        <span class="kw">if</span> <span class="ident">capture_callbacks</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">is_some</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">AudioDeviceError::CaptureCallbacksOverrideNotAllowed</span>);
-        }
-        <span class="kw-2">*</span><span class="ident">capture_callbacks</span>.<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">callbacks</span>);
-        <span class="prelude-val">Ok</span>(())
-    }
-
     <span class="kw">fn</span> <span class="ident">start_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-            <span class="kw">return</span> <span class="ident">c</span>.<span class="ident">start</span>(<span class="self">self</span>);
-        }
+        <span class="self">self</span>.<span class="ident">capturer_ready</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
+
     <span class="kw">fn</span> <span class="ident">stop_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-            <span class="kw">return</span> <span class="ident">c</span>.<span class="ident">stop</span>(<span class="self">self</span>);
-        }
+        <span class="self">self</span>.<span class="ident">capturer_ready</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
+
     <span class="kw">fn</span> <span class="ident">start_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-            <span class="kw">return</span> <span class="ident">c</span>.<span class="ident">start</span>(<span class="self">self</span>);
-        }
+        <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
+        <span class="kw">let</span> <span class="ident">render_thread_running</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">sampling_rate</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">sampling_rate</span>;
+        <span class="kw">let</span> <span class="ident">number_of_channels</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">number_of_channels</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> (<span class="ident">sampling_rate</span> <span class="op">/</span> <span class="number">100</span>) <span class="op">*</span> <span class="ident">number_of_channels</span>;
+        <span class="kw">let</span> <span class="ident">on_audio_sample_callbacks</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">on_audio_sample_callbacks</span>.<span class="ident">clone</span>();
+        <span class="ident">std::thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">render_thread_running</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
+                <span class="kw">break</span>;
+            }
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">ffi::otc_audio_device_read_render_data</span>(<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>);
+                <span class="ident">data</span>.<span class="ident">set_len</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                <span class="ident">data</span>
+            };
+            <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">continue</span>;
+            }
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">callbacks</span>) <span class="op">=</span> <span class="ident">on_audio_sample_callbacks</span>.<span class="ident">try_lock</span>() {
+                <span class="kw">for</span> <span class="kw-2">ref</span> <span class="ident">callback</span> <span class="kw">in</span> <span class="ident">callbacks</span>.<span class="ident">iter</span>() {
+                    <span class="ident">callback</span>(<span class="ident">AudioSample</span> {
+                        <span class="ident">data</span>: <span class="ident">AudioSampleData</span>(<span class="ident">data</span>.<span class="ident">clone</span>()),
+                        <span class="ident">sampling_rate</span>,
+                        <span class="ident">number_of_channels</span>,
+                    });
+                }
+            }
+            <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_micros</span>(<span class="number">10000</span>));
+        });
         <span class="prelude-val">Ok</span>(())
     }
+
     <span class="kw">fn</span> <span class="ident">stop_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
-            <span class="kw">return</span> <span class="ident">c</span>.<span class="ident">stop</span>(<span class="self">self</span>);
-        }
+        <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
 }
