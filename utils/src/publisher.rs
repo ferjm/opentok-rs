@@ -37,10 +37,12 @@ impl Publisher {
     pub fn run(&self) -> anyhow::Result<()> {
         let audio_capture_thread_running = Arc::new(AtomicBool::new(true));
         let audio_capture_thread_running_ = audio_capture_thread_running.clone();
+
+        let audio_device = AudioDevice::get_instance();
+
         thread::spawn(move || {
             let audio_capturer =
                 capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
-            let audio_device = AudioDevice::get_instance();
             loop {
                 if !audio_capture_thread_running.load(Ordering::Relaxed) {
                     break;
