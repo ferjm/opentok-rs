@@ -150,6 +150,8 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::capturer</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::common::Credentials</span>;
@@ -190,10 +192,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">audio_capture_thread_running</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicBool::new</span>(<span class="bool-val">true</span>));
         <span class="kw">let</span> <span class="ident">audio_capture_thread_running_</span> <span class="op">=</span> <span class="ident">audio_capture_thread_running</span>.<span class="ident">clone</span>();
+
+        <span class="kw">let</span> <span class="ident">audio_device</span> <span class="op">=</span> <span class="ident">AudioDevice::get_instance</span>();
+
         <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">audio_capturer</span> <span class="op">=</span>
                 <span class="ident">capturer::AudioCapturer::new</span>(<span class="kw-2">&amp;</span><span class="ident">AudioDeviceSettings::default</span>()).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">audio_device</span> <span class="op">=</span> <span class="ident">AudioDevice::get_instance</span>();
             <span class="kw">loop</span> {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">audio_capture_thread_running</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) {
                     <span class="kw">break</span>;
