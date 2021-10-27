@@ -8,22 +8,11 @@ These bindings are providing a safe API that can be used to interface with OpenT
 [Documentation](https://ferjm.github.io/opentok-rs/opentok)
 
 ## Setting up your environment
-To build the OpenTok bindings or anything depending on them, you need to have at least
-the OpenTok 2.19.1 SDK installed. For now the only supported platform is Linux.
-Vonage provides a Debian package that can be installed after adding their `packagecloud`
-repository:
+To build the OpenTok bindings or anything depending on them, you need to have
+the OpenTok 2.19.1 SDK installed. For now the only supported platform is Linux and
+2.19.1 is the only supported version.
 
-```sh
-curl -s https://packagecloud.io/install/repositories/tokbox/debian/script.deb.sh | sudo bash
-```
-
-Once the repository is set up, install the `libopentok-dev` package:
-
-```sh
-sudo apt install libopentok-dev
-```
-
-For non-Debian based Linuxes, you need to download the SDK from
+You need to download the SDK from
 [https://tokbox.com/developer/sdks/linux/](https://tokbox.com/developer/sdks/linux/).
 Extract it somewhere in your machine and add the SDK's `lib` folder path to your
 `LD_LIBRARY_PATH` and `LIBRARY_PATH` environment variables:
