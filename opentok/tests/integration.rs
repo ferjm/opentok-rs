@@ -5,10 +5,13 @@ mod tests {
     use opentok::log::{self, LogLevel};
     use opentok::publisher::{Publisher, PublisherCallbacks};
     use opentok::session::{Session, SessionCallbacks};
+    use opentok::subscriber::{Subscriber, SubscriberCallbacks};
     use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
     use opentok::video_frame::VideoFrame;
     use opentok_server::{OpenTok, SessionOptions, TokenRole};
     use opentok_utils::capturer;
+    use opentok_utils::common::Credentials;
+    use opentok_utils::publisher::Publisher as UtilsPublisher;
     use std::env;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc;
@@ -173,12 +176,12 @@ mod tests {
             })
             .build();
 
+        let audio_device = AudioDevice::get_instance();
         let audio_capture_thread_running = Arc::new(AtomicBool::new(true));
         let audio_capture_thread_running_ = audio_capture_thread_running.clone();
         std::thread::spawn(move || {
             let audio_capturer =
                 capturer::AudioCapturer::new(&AudioDeviceSettings::default()).unwrap();
-            let audio_device = AudioDevice::get_instance();
             loop {
                 if !audio_capture_thread_running.load(Ordering::Relaxed) {
                     break;
@@ -253,6 +256,86 @@ mod tests {
 
         audio_capture_thread_running_.store(false, Ordering::Relaxed);
         render_thread_running__.store(false, Ordering::Relaxed);
+
+        test_teardown();
+    }
+
+    #[test]
+    fn test_subscriber() {
+        let (api_key, session_id, token) = setup_test();
+
+        let (sender, receiver) = mpsc::channel();
+        let sender = Arc::new(Mutex::new(sender));
+
+        let credentials = Credentials {
+            api_key: api_key.clone(),
+            session_id: session_id.clone(),
+            token: token.clone(),
+        };
+
+        let sender_ = sender.clone();
+        let publisher = Arc::new(Mutex::new(UtilsPublisher::new(
+            credentials,
+            Some(Box::new(move |_, _| {
+                sender_.lock().unwrap().send(()).unwrap();
+            })),
+            None,
+        )));
+
+        std::thread::spawn(move || {
+            publisher.lock().unwrap().run().unwrap();
+        });
+
+        receiver.recv().unwrap();
+
+        let audio_sample_received = Arc::new(AtomicBool::new(false));
+        let video_frame_received = Arc::new(AtomicBool::new(false));
+        let audio_sample_received_ = audio_sample_received.clone();
+        let video_frame_received_ = video_frame_received.clone();
+        let (done_sender, done_receiver) = mpsc::channel();
+        let done_sender = Arc::new(Mutex::new(done_sender));
+        let done_sender_ = done_sender.clone();
+
+        let audio_device = AudioDevice::get_instance();
+        audio_device
+            .lock()
+            .unwrap()
+            .set_on_audio_sample_callback(Box::new(move |_| {
+                audio_sample_received.store(true, Ordering::Relaxed);
+                if video_frame_received.load(Ordering::Relaxed) {
+                    done_sender.lock().unwrap().send(()).unwrap();
+                }
+            }));
+
+        let subscriber_callbacks = SubscriberCallbacks::builder()
+            .on_render_frame(move |_, _| {
+                video_frame_received_.store(true, Ordering::Relaxed);
+                if audio_sample_received_.load(Ordering::Relaxed) {
+                    done_sender_.lock().unwrap().send(()).unwrap();
+                }
+            })
+            .on_error(|_, error, _| {
+                eprintln!("on_error {:?}", error);
+            })
+            .build();
+
+        let subscriber = Arc::new(Subscriber::new(subscriber_callbacks));
+
+        let session_callbacks = SessionCallbacks::builder()
+            .on_stream_received(move |session, stream| {
+                if subscriber.set_stream(stream).is_ok() {
+                    session.subscribe(&subscriber).unwrap();
+                }
+            })
+            .on_error(|_, error, _| {
+                eprintln!("on_error {:?}", error);
+            })
+            .build();
+        let session = Session::new(&api_key, &session_id, session_callbacks).unwrap();
+
+        session.connect(&token).unwrap();
+
+        done_receiver.recv().unwrap();
 
         test_teardown();
     }
