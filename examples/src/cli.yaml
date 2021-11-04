@@ -11,6 +11,10 @@ args:
       long: duration
       about: Time in seconds the example will last
       takes_value: true
+  - opentok_url:
+      long: opentok-url
+      about: Url of the form opentok://<session-id>/<stream-id>?key=<api-key>&token=<token>
+      takes_value: true
   - session_id:
       short: s
       long: session-id

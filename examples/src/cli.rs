@@ -1,5 +1,7 @@
 use clap::{load_yaml, App};
 use opentok_utils::common::Credentials;
+use std::collections::HashMap;
+use url::Url;
 
 pub async fn parse_cli() -> Result<(Credentials, Option<u64>), anyhow::Error> {
     let yaml = load_yaml!("cli.yaml");
@@ -17,6 +19,13 @@ pub async fn parse_cli() -> Result<(Credentials, Option<u64>), anyhow::Error> {
         credentials.api_key = json["apiKey"].as_str().unwrap().into();
         credentials.session_id = json["sessionId"].as_str().unwrap().into();
         credentials.token = json["token"].as_str().unwrap().into();
+    } else if let Some(url) = matches.value_of("opentok_url") {
+        let url = Url::parse(url).unwrap();
+        let query_params: HashMap<_, _> = url.query_pairs().into_owned().collect();
+
+        credentials.api_key = query_params.get("key").cloned().unwrap_or_default();
+        credentials.token = query_params.get("token").cloned().unwrap_or_default();
+        credentials.session_id = url.host().map(|s| s.to_string()).unwrap_or_default();
     } else {
         if let Some(api_key) = matches.value_of("api_key") {
             credentials.api_key = api_key.into();
