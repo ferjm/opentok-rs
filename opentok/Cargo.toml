@@ -4,6 +4,11 @@ version = "1.0.0"
 description = "Rust bindings for OpenTok SDK"
 authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com"]
 edition = "2018"
+license = "MIT"
+repository = "https://github.com/ferjm/opentok-rs"
+documentation = "https://ferjm.github.io/opentok-rs/opentok_rs_sys/"
+keywords = ["opentok", "tokbox", "vonage", "webrtc", "multimedia"]
+categories = ["multimedia", "external-ffi-bindings"]
 
 [dependencies]
 ffi = { package = "opentok-rs-sys", path = "../opentok-sys" }

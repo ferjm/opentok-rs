@@ -1,11 +1,16 @@
 [package]
 name = "opentok-rs-sys"
-version = "0.1.0"
+version = "1.0.0"
 description = "Rust FFI bindings for OpenTok SDK"
-authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
+authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com"]
 edition = "2018"
 links = "opentok"
 build = "build.rs"
+license = "MIT"
+repository = "https://github.com/ferjm/opentok-rs"
+documentation = "https://ferjm.github.io/opentok-rs/opentok/"
+keywords = ["opentok", "tokbox", "vonage", "webrtc", "multimedia"]
+categories = ["multimedia", "api-bindings"]
 
 [build-dependencies]
 bindgen = "0.58.1"

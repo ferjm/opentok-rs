@@ -1462,7 +1462,7 @@ dependencies = [
 
 [[package]]
 name = "opentok-rs-sys"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bindgen",
 ]
@@ -1486,7 +1486,7 @@ dependencies = [
 
 [[package]]
 name = "opentok-utils"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "byte-slice-cast",
