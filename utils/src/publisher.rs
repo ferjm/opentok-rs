@@ -97,7 +97,18 @@ impl Publisher {
         let this = self.clone();
         let publisher_callbacks = PublisherCallbacks::builder()
             .on_stream_created(move |_, stream| {
-                println!("on_stream_created");
+                println!("Publishing stream with ID {}", stream.id());
+                println!(
+                    "opentok url {}",
+                    format!(
+                        "opentok://{}/{}?key={}&token={}",
+                        this.credentials.session_id,
+                        stream.id(),
+                        this.credentials.api_key,
+                        this.credentials.token
+                    )
+                );
+
                 if let Some(ref callback) = *on_stream_created.lock().unwrap() {
                     callback(&this, stream.id());
                 }

@@ -41,6 +41,15 @@ impl Renderer {
 
         pipeline.set_state(gst::State::Playing)?;
 
+        if cfg!(debug_assertions) {
+            let bin = pipeline.clone().upcast::<gst::Bin>();
+            gst::debug_bin_to_dot_file_with_ts(
+                &bin,
+                gst::DebugGraphDetails::all(),
+                "RendererPipeline",
+            );
+        }
+
         Ok(Self {
             pipeline,
             video_src,
