@@ -1,6 +1,6 @@
 [package]
 name = "opentok-utils"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2018"
 description = "Test utilities for the OpenTok SDK Rust bindings"
 authors = ["Fernando Jiménez Moreno <ferjmoreno@gmail.com>"]
