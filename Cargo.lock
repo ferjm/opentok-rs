@@ -1463,6 +1463,8 @@ dependencies = [
 [[package]]
 name = "opentok-rs-sys"
 version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eeefc044acc8be5c3ac145a1e9b657b168ea37df35874cf208a9b00298a8eb7d"
 dependencies = [
  "bindgen",
 ]
