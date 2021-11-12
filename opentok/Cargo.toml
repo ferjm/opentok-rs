@@ -6,7 +6,7 @@ authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <
 edition = "2018"
 license = "MIT"
 repository = "https://github.com/ferjm/opentok-rs"
-documentation = "https://ferjm.github.io/opentok-rs/opentok_rs_sys/"
+documentation = "https://ferjm.github.io/opentok-rs/opentok/"
 keywords = ["opentok", "tokbox", "vonage", "webrtc", "multimedia"]
 categories = ["multimedia", "external-ffi-bindings"]
 
