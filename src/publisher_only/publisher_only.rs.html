@@ -66,6 +66,17 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
 </pre><pre class="rust"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">opentok</span>;
 
 <span class="kw">use</span> <span class="ident">opentok::log</span>::{<span class="self">self</span>, <span class="ident">LogLevel</span>};
@@ -84,9 +95,20 @@
 
     <span class="ident">log::enable_log</span>(<span class="ident">LogLevel::Info</span>);
 
+    <span class="kw">let</span> <span class="ident">credentials_</span> <span class="op">=</span> <span class="ident">credentials</span>.<span class="ident">clone</span>();
     <span class="kw">let</span> <span class="ident">publisher_callbacks</span> <span class="op">=</span> <span class="ident">PublisherCallbacks::builder</span>()
-        .<span class="ident">on_stream_created</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {
-            <span class="macro">println!</span>(<span class="string">&quot;on_stream_created&quot;</span>);
+        .<span class="ident">on_stream_created</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">stream</span><span class="op">|</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;on_stream_created {}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>());
+            <span class="macro">println!</span>(
+                <span class="string">&quot;opentok url {}&quot;</span>,
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;opentok://{}/{}?key={}&amp;token={}&quot;</span>,
+                    <span class="ident">credentials_</span>.<span class="ident">session_id</span>,
+                    <span class="ident">stream</span>.<span class="ident">id</span>(),
+                    <span class="ident">credentials_</span>.<span class="ident">api_key</span>,
+                    <span class="ident">credentials_</span>.<span class="ident">token</span>
+                )
+            );
         })
         .<span class="ident">on_error</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">error</span>, <span class="kw">_</span><span class="op">|</span> {
             <span class="macro">println!</span>(<span class="string">&quot;on_error {:?}&quot;</span>, <span class="ident">error</span>);
