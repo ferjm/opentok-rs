@@ -40,7 +40,7 @@
         <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">msg</span>);
     }));
 
-    <span class="ident">Subscriber::new</span>(<span class="ident">credentials</span>, <span class="ident">duration</span>).<span class="ident">run</span>()<span class="question-mark">?</span>;
+    <span class="ident">Subscriber::new</span>(<span class="ident">credentials</span>, <span class="ident">duration</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>).<span class="ident">run</span>()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="ident">opentok::deinit</span>()<span class="question-mark">?</span>)
 }

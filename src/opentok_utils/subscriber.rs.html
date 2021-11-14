@@ -130,6 +130,30 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common::Credentials</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 
@@ -143,14 +167,23 @@
     <span class="ident">credentials</span>: <span class="ident">Credentials</span>,
     <span class="ident">main_loop</span>: <span class="ident">glib::MainLoop</span>,
     <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    <span class="ident">stream_id</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">ignored_stream_ids</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Subscriber</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">credentials</span>: <span class="ident">Credentials</span>, <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">credentials</span>: <span class="ident">Credentials</span>,
+        <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+        <span class="ident">stream_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+        <span class="ident">ignored_stream_ids</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">credentials</span>,
             <span class="ident">main_loop</span>: <span class="ident">glib::MainLoop::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>),
             <span class="ident">duration</span>,
+            <span class="ident">stream_id</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">stream_id</span>)),
+            <span class="ident">ignored_stream_ids</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">ignored_stream_ids</span>.<span class="ident">unwrap_or_default</span>())),
         }
     }
 
@@ -217,6 +250,8 @@
 
         <span class="kw">let</span> <span class="ident">subscriber</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">OpenTokSubscriber::new</span>(<span class="ident">subscriber_callbacks</span>));
 
+        <span class="kw">let</span> <span class="ident">stream_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream_id</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">ignored_stream_ids</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ignored_stream_ids</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">session_callbacks</span> <span class="op">=</span> <span class="ident">SessionCallbacks::builder</span>()
             .<span class="ident">on_stream_received</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">session</span>, <span class="ident">stream</span><span class="op">|</span> {
                 <span class="kw-2">*</span><span class="ident">renderer__</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">renderer::Renderer::new</span>().<span class="ident">unwrap</span>());
@@ -225,6 +260,19 @@
                     <span class="ident">stream</span>.<span class="ident">get_video_width</span>(),
                     <span class="ident">stream</span>.<span class="ident">get_video_height</span>()
                 );
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">stream_id</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">stream_id</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() {
+                    <span class="kw">if</span> <span class="ident">stream</span>.<span class="ident">id</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">stream_id</span> {
+                        <span class="macro">println!</span>(<span class="string">&quot;{} is not the stream we want to susbscribe to&quot;</span>, <span class="ident">stream_id</span>);
+                        <span class="kw">return</span>;
+                    }
+                }
+
+                <span class="kw">if</span> <span class="ident">ignored_stream_ids</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>.<span class="ident">id</span>()) {
+                    <span class="macro">println!</span>(<span class="string">&quot;Ignoring stream {}&quot;</span>, <span class="ident">stream</span>.<span class="ident">id</span>());
+                    <span class="kw">return</span>;
+                }
+
                 <span class="kw">if</span> <span class="ident">subscriber</span>.<span class="ident">set_stream</span>(<span class="ident">stream</span>).<span class="ident">is_ok</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">session</span>.<span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="ident">subscriber</span>) {
                         <span class="macro">eprintln!</span>(<span class="string">&quot;Could not subscribe to session {:?}&quot;</span>, <span class="ident">e</span>);
