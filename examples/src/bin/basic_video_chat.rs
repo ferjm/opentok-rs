@@ -19,11 +19,16 @@ async fn main() -> anyhow::Result<()> {
     }));
 
     let credentials_ = credentials.clone();
-    std::thread::spawn(move || {
-        Subscriber::new(credentials_, duration).run().unwrap();
+    let on_stream_created = Box::new(move |_: &Publisher, stream_id: String| {
+        let credentials = credentials_.clone();
+        std::thread::spawn(move || {
+            Subscriber::new(credentials, duration, None, Some(vec![stream_id]))
+                .run()
+                .unwrap();
+        });
     });
 
-    Publisher::new(credentials, None, duration).run()?;
+    Publisher::new(credentials, Some(on_stream_created), duration).run()?;
 
     Ok(opentok::deinit()?)
 }

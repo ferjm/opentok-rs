@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
         println!("{:?}", msg);
     }));
 
-    Subscriber::new(credentials, duration).run()?;
+    Subscriber::new(credentials, duration, None, None).run()?;
 
     Ok(opentok::deinit()?)
 }

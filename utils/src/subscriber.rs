@@ -11,14 +11,23 @@ pub struct Subscriber {
     credentials: Credentials,
     main_loop: glib::MainLoop,
     duration: Option<u64>,
+    stream_id: Arc<Mutex<Option<String>>>,
+    ignored_stream_ids: Arc<Mutex<Vec<String>>>,
 }
 
 impl Subscriber {
-    pub fn new(credentials: Credentials, duration: Option<u64>) -> Self {
+    pub fn new(
+        credentials: Credentials,
+        duration: Option<u64>,
+        stream_id: Option<String>,
+        ignored_stream_ids: Option<Vec<String>>,
+    ) -> Self {
         Self {
             credentials,
             main_loop: glib::MainLoop::new(None, false),
             duration,
+            stream_id: Arc::new(Mutex::new(stream_id)),
+            ignored_stream_ids: Arc::new(Mutex::new(ignored_stream_ids.unwrap_or_default())),
         }
     }
 
@@ -85,6 +94,8 @@ impl Subscriber {
 
         let subscriber = Arc::new(OpenTokSubscriber::new(subscriber_callbacks));
 
+        let stream_id = self.stream_id.clone();
+        let ignored_stream_ids = self.ignored_stream_ids.clone();
         let session_callbacks = SessionCallbacks::builder()
             .on_stream_received(move |session, stream| {
                 *renderer__.lock().unwrap() = Some(renderer::Renderer::new().unwrap());
@@ -93,6 +104,19 @@ impl Subscriber {
                     stream.get_video_width(),
                     stream.get_video_height()
                 );
+
+                if let Some(ref stream_id) = *stream_id.lock().unwrap() {
+                    if stream.id() != *stream_id {
+                        println!("{} is not the stream we want to susbscribe to", stream_id);
+                        return;
+                    }
+                }
+
+                if ignored_stream_ids.lock().unwrap().contains(&stream.id()) {
+                    println!("Ignoring stream {}", stream.id());
+                    return;
+                }
+
                 if subscriber.set_stream(stream).is_ok() {
                     if let Err(e) = session.subscribe(&subscriber) {
                         eprintln!("Could not subscribe to session {:?}", e);
