@@ -7,12 +7,9 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.40"
 byte-slice-cast = "1.0.0"
-clap = { version = "3.0.0-beta.1", features = ["yaml"]}
+clap = { version = "3.0.7", features = ["yaml"]}
 derive_more = "0.99.14"
-glib = { git = "https://github.com/gtk-rs/gtk-rs-core" }
-gst = { package = "gstreamer", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
-gst-app = { package = "gstreamer-app", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
-gst-video = { package = "gstreamer-video", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+glib = "0.15"
 opentok = { path = "../opentok" }
 opentok-utils = { path = "../utils" }
 json = "0.12"

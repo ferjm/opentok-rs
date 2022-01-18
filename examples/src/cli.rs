@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use clap::{load_yaml, App};
 use opentok_utils::common::Credentials;
 use std::collections::HashMap;
@@ -5,7 +6,7 @@ use url::Url;
 
 pub async fn parse_cli() -> Result<(Credentials, Option<u64>), anyhow::Error> {
     let yaml = load_yaml!("cli.yaml");
-    let mut app = App::from(yaml);
+    let mut app = App::from_yaml(yaml);
     let matches = app.clone().get_matches();
 
     let mut credentials = Credentials::default();

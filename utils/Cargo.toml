@@ -12,8 +12,8 @@ license = "MIT"
 anyhow = "1.0.40"
 byte-slice-cast = "1.0.0"
 derive_more = "0.99.14"
-glib = { git = "https://github.com/gtk-rs/gtk-rs-core" }
-gst = { package = "gstreamer", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
-gst-app = { package = "gstreamer-app", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
-gst-video = { package = "gstreamer-video", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+glib = "0.15"
+gst = { package = "gstreamer", version = "0.18" }
+gst_app = { package = "gstreamer-app", version = "0.18" }
+gst_video = { package = "gstreamer-video", version = "0.18" }
 opentok = { path = "../opentok" }
