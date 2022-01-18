@@ -227,7 +227,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">VideoCapturerSettings</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">format</span>: <span class="ident">FrameFormat::Yuv420P</span>,
             <span class="ident">width</span>: <span class="number">1280</span>,
@@ -242,7 +242,7 @@
 <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">init</span>(
     <span class="ident">capturer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_capturer</span>,
     <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_bool</span> {
+) -&gt; <span class="ident">ffi::otc_bool</span> {
     <span class="kw">let</span> <span class="ident">instance_id</span> <span class="op">=</span> <span class="ident">data</span> <span class="kw">as</span> <span class="ident">usize</span>;
     <span class="kw">let</span> <span class="ident">result</span>: <span class="ident">OtcBool</span> <span class="op">=</span> <span class="ident">INSTANCES</span>
         .<span class="ident">lock</span>()
@@ -266,14 +266,14 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VideoCapturerCallbacks</span> {
-    <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">destroy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">destroy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">VideoCapturerCallbacks</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VideoCapturerCallbacksBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">VideoCapturerCallbacksBuilder</span> {
         <span class="ident">VideoCapturerCallbacksBuilder::default</span>()
     }
 
@@ -285,10 +285,10 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VideoCapturerCallbacksBuilder</span> {
-    <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">destroy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">destroy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">start</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">stop</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>) -&gt; <span class="ident">OtcResult</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">VideoCapturerCallbacksBuilder</span> {
@@ -297,7 +297,7 @@
     <span class="macro">callback_setter_with_return!</span>(<span class="ident">start</span>, <span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>, <span class="ident">OtcResult</span>);
     <span class="macro">callback_setter_with_return!</span>(<span class="ident">stop</span>, <span class="kw-2">&amp;</span><span class="ident">VideoCapturer</span>, <span class="ident">OtcResult</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VideoCapturerCallbacks</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">VideoCapturerCallbacks</span> {
         <span class="ident">VideoCapturerCallbacks</span> {
             <span class="ident">init</span>: <span class="self">self</span>.<span class="ident">init</span>,
             <span class="ident">destroy</span>: <span class="self">self</span>.<span class="ident">destroy</span>,
@@ -320,7 +320,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">VideoCapturer</span> {}
 
 <span class="kw">impl</span> <span class="ident">VideoCapturer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="ident">VideoCapturerSettings</span>, <span class="ident">callbacks</span>: <span class="ident">VideoCapturerCallbacks</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="ident">VideoCapturerSettings</span>, <span class="ident">callbacks</span>: <span class="ident">VideoCapturerCallbacks</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">instance_id</span> <span class="op">=</span> <span class="ident">INSTANCES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">capturer</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">instance_id</span>,
@@ -344,7 +344,7 @@
         <span class="ident">capturer</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">callbacks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">ffi::otc_video_capturer_callbacks</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">callbacks</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">ffi::otc_video_capturer_callbacks</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         {
             <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">ffi_callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">ffi::otc_video_capturer_callbacks</span> {
                 <span class="ident">init</span>: <span class="prelude-val">Some</span>(<span class="ident">init</span>),
@@ -359,7 +359,7 @@
         <span class="self">self</span>.<span class="ident">ffi_callbacks</span>.<span class="ident">clone</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">provide_frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rotation</span>: <span class="ident">i32</span>, <span class="ident">frame</span>: <span class="kw-2">&amp;</span><span class="ident">VideoFrame</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">provide_frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rotation</span>: <span class="ident">i32</span>, <span class="ident">frame</span>: <span class="kw-2">&amp;</span><span class="ident">VideoFrame</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ptr</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -370,7 +370,7 @@
         .<span class="ident">into_result</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">capturer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_capturer</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">capturer</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_capturer</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">capturer</span>);
         <span class="self">self</span>.<span class="ident">callbacks</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">init</span>(<span class="self">self</span>)
     }
@@ -379,7 +379,7 @@
     <span class="macro">callback_call_with_return!</span>(<span class="ident">start</span>, <span class="ident">OtcResult</span>);
     <span class="macro">callback_call_with_return!</span>(<span class="ident">stop</span>, <span class="ident">OtcResult</span>);
 
-    <span class="kw">fn</span> <span class="ident">get_capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_video_capturer_settings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">get_capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_video_capturer_settings</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
         }

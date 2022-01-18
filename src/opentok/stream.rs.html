@@ -145,12 +145,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ffi::otc_stream_video_type</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StreamVideoType</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">ffi::otc_stream_video_type</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamVideoType</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">ffi::otc_stream_video_type</span>) -&gt; <span class="ident">StreamVideoType</span> {
         <span class="kw">match</span> <span class="ident">type_</span> {
-            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_CAMERA</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StreamVideoType::Camera</span>,
-            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_SCREEN</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StreamVideoType::Screen</span>,
-            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_CUSTOM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StreamVideoType::Custom</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StreamVideoType::__Unknown</span>,
+            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_CAMERA</span> =&gt; <span class="ident">StreamVideoType::Camera</span>,
+            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_SCREEN</span> =&gt; <span class="ident">StreamVideoType::Screen</span>,
+            <span class="ident">ffi::otc_stream_video_type_OTC_STREAM_VIDEO_TYPE_CUSTOM</span> =&gt; <span class="ident">StreamVideoType::Custom</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">StreamVideoType::__Unknown</span>,
         }
     }
 }
@@ -160,73 +160,73 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Stream</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span> {
         <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>
     }
 
     <span class="macro">string_getter!</span>(
         <span class="doccomment">/// Gets the uniquer identifier for this stream.</span>
-        <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">id</span>, <span class="ident">otc_stream_get_id</span>)
+        =&gt; (<span class="ident">id</span>, <span class="ident">otc_stream_get_id</span>)
     );
     <span class="macro">string_getter!</span>(
         <span class="doccomment">/// Gets the name of the stream. The publisher of the stream</span>
         <span class="doccomment">/// can set this name to identify the stream.</span>
-        <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">name</span>, <span class="ident">otc_stream_get_name</span>)
+        =&gt; (<span class="ident">name</span>, <span class="ident">otc_stream_get_name</span>)
     );
 
     <span class="doccomment">/// Checks whether this stream is currently publishing video or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_video</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_video</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_has_video</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
     }
 
     <span class="doccomment">/// Checks whether this stream contains a video track or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_video_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_video_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">ffi::otc_stream_has_video_track</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
         }
     }
 
     <span class="doccomment">/// Checks whether this stream is currently publishing audio or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_audio</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_audio</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_has_audio</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> }
     }
 
     <span class="doccomment">/// Checks whether this stream contains an audio track or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_audio_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_audio_track</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">unsafe</span> {
             <span class="ident">ffi::otc_stream_has_audio_track</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
         }
     }
 
     <span class="doccomment">/// Return the width of the stream in pixels.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_get_video_width</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Return the height of the stream in pixels.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i32</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_get_video_height</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Get the creation time of the stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_creation_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_creation_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">i64</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_get_creation_time</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StreamVideoType</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_video_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StreamVideoType</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_get_video_type</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }
             .<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Get the Connection associated with the client publishing the stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Connection</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Connection</span> {
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_get_connection</span>(<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }
             .<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Stream</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         (<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span>).<span class="ident">into</span>()
     }
 }
@@ -249,7 +249,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Stream</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::not_unsafe_ptr_arg_deref</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Stream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_stream</span>) -&gt; <span class="ident">Stream</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::otc_stream_copy</span>(<span class="ident">ptr</span>) };
         <span class="ident">Stream</span> {
             <span class="ident">ptr</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>),

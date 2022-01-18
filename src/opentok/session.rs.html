@@ -821,60 +821,60 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ffi::otc_session_error_code</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SessionError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ffi::otc_session_error_code</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SessionError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ffi::otc_session_error_code</span>) -&gt; <span class="ident">SessionError</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_AUTHORIZATION_FAILURE</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_AUTHORIZATION_FAILURE</span> =&gt; {
                 <span class="ident">SessionError::AuthorizationFailure</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_BLOCKED_COUNTRY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::BlockedCountry</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_DROPPED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_BLOCKED_COUNTRY</span> =&gt; <span class="ident">SessionError::BlockedCountry</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_DROPPED</span> =&gt; {
                 <span class="ident">SessionError::ConnectionDropped</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_FAILED</span> =&gt; {
                 <span class="ident">SessionError::ConnectionFailed</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_LIMIT_EXCEEDED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_LIMIT_EXCEEDED</span> =&gt; {
                 <span class="ident">SessionError::ConnectionLimitExceeded</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_REFUSED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_REFUSED</span> =&gt; {
                 <span class="ident">SessionError::ConnectionRefused</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_TIMED_OUT</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_CONNECTION_TIMED_OUT</span> =&gt; {
                 <span class="ident">SessionError::ConnectionTimedOut</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_FORCE_UNPUBLISH_OR_INVALID_STREAM</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_FORCE_UNPUBLISH_OR_INVALID_STREAM</span> =&gt; {
                 <span class="ident">SessionError::ForceUnpublishOrInvalidStream</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_ILLEGAL_STATE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::IllegalState</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INTERNAL_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::InternalError</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INVALID_SESSION</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::InvalidSession</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INVALID_SIGNAL_TYPE</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_ILLEGAL_STATE</span> =&gt; <span class="ident">SessionError::IllegalState</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INTERNAL_ERROR</span> =&gt; <span class="ident">SessionError::InternalError</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INVALID_SESSION</span> =&gt; <span class="ident">SessionError::InvalidSession</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_INVALID_SIGNAL_TYPE</span> =&gt; {
                 <span class="ident">SessionError::InvalidSignalType</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NOT_CONNECTED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::NotConnected</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NO_MESSAGING_SERVER</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NOT_CONNECTED</span> =&gt; <span class="ident">SessionError::NotConnected</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NO_MESSAGING_SERVER</span> =&gt; {
                 <span class="ident">SessionError::NoMessagingServer</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NULL_OR_INVALID_PARAMETER</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_NULL_OR_INVALID_PARAMETER</span> =&gt; {
                 <span class="ident">SessionError::NullOrInvalidParameter</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_PUBLISHER_NOT_FOUND</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_PUBLISHER_NOT_FOUND</span> =&gt; {
                 <span class="ident">SessionError::PublisherNotFound</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SIGNAL_DATA_TOO_LONG</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SIGNAL_DATA_TOO_LONG</span> =&gt; {
                 <span class="ident">SessionError::SignalDataTooLong</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SIGNAL_TYPE_TOO_LONG</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SIGNAL_TYPE_TOO_LONG</span> =&gt; {
                 <span class="ident">SessionError::SignalTypeTooLong</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_STATE_FAILED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::StateFailed</span>,
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SUBSCRIBER_NOT_FOUND</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_STATE_FAILED</span> =&gt; <span class="ident">SessionError::StateFailed</span>,
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_SUBSCRIBER_NOT_FOUND</span> =&gt; {
                 <span class="ident">SessionError::SubscriberNotFound</span>
             }
-            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_UNEXPECTED_GET_SESSION_INFO_REPONSE</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_session_error_code_OTC_SESSION_UNEXPECTED_GET_SESSION_INFO_REPONSE</span> =&gt; {
                 <span class="ident">SessionError::UnexpectedGetSessionInfoResponse</span>
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SessionError::__Unknown</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">SessionError::__Unknown</span>,
         }
     }
 }
@@ -991,7 +991,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SessionCallbacks</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SessionCallbacksBuilder</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">SessionCallbacksBuilder</span> {
         <span class="ident">SessionCallbacksBuilder::default</span>()
     }
 
@@ -1116,7 +1116,7 @@
     <span class="macro">callback_setter!</span>(<span class="ident">on_archive_stopped</span>, <span class="kw-2">&amp;</span><span class="ident">Session</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>);
     <span class="macro">callback_setter!</span>(<span class="ident">on_error</span>, <span class="kw-2">&amp;</span><span class="ident">Session</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">SessionError</span>);
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SessionCallbacks</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">SessionCallbacks</span> {
         <span class="ident">SessionCallbacks</span> {
             <span class="ident">on_connected</span>: <span class="self">self</span>.<span class="ident">on_connected</span>,
             <span class="ident">on_reconnection_started</span>: <span class="self">self</span>.<span class="ident">on_reconnection_started</span>,
@@ -1148,7 +1148,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ConnectionState</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Disconnected</span>
     }
 }
@@ -1175,7 +1175,7 @@
         <span class="ident">api_key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">session_id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">callbacks</span>: <span class="ident">SessionCallbacks</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Session</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Session</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">api_key</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">api_key</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">OtcError::InvalidParam</span>(<span class="string">&quot;api_key&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">session_id</span> <span class="op">=</span>
             <span class="ident">CString::new</span>(<span class="ident">session_id</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">OtcError::InvalidParam</span>(<span class="string">&quot;session_id&quot;</span>))<span class="question-mark">?</span>;
@@ -1219,17 +1219,17 @@
 
     <span class="macro">string_getter!</span>(
         <span class="doccomment">/// Gets the uniquer identifier for this session.</span>
-        <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">id</span>, <span class="ident">otc_session_get_id</span>)
+        =&gt; (<span class="ident">id</span>, <span class="ident">otc_session_get_id</span>)
     );
 
     <span class="doccomment">/// Connects a client to an OpenTok session.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * token - The client token for connecting to the session. Check</span>
     <span class="doccomment">/// &lt;https://tokbox.com/developer/guides/create-token/&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">connection_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection_state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionState::Connected</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">connection_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionState::Connecting</span>
+        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">==</span> <span class="ident">ConnectionState::Connected</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">connection_state</span> <span class="op">==</span> <span class="ident">ConnectionState::Connecting</span>
         {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1246,10 +1246,10 @@
 
     <span class="doccomment">/// Disconnects the client from this session. All of the client&#39;s subscribers</span>
     <span class="doccomment">/// and publishers will also be disconnected from the session.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disconnect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disconnect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">connection_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection_state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionState::Disconnected</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">connection_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionState::Disconnecting</span>
+        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">==</span> <span class="ident">ConnectionState::Disconnected</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">connection_state</span> <span class="op">==</span> <span class="ident">ConnectionState::Disconnecting</span>
         {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
@@ -1262,7 +1262,7 @@
     }
 
     <span class="doccomment">/// Starts a publisher streaming to the session.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">publish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">publisher</span>: <span class="kw-2">&amp;</span><span class="ident">Publisher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">publish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">publisher</span>: <span class="kw-2">&amp;</span><span class="ident">Publisher</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
         }
@@ -1276,7 +1276,7 @@
     }
 
     <span class="doccomment">/// Stops publishing from a session, causing the publisher stream to stop.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpublish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">publisher</span>: <span class="kw-2">&amp;</span><span class="ident">Publisher</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpublish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">publisher</span>: <span class="kw-2">&amp;</span><span class="ident">Publisher</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>).<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
         }
@@ -1296,7 +1296,7 @@
     }
 
     <span class="doccomment">/// Starts subscribing to an audio/video stream in this session.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">subscriber</span>: <span class="kw-2">&amp;</span><span class="ident">Subscriber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">subscriber</span>: <span class="kw-2">&amp;</span><span class="ident">Subscriber</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -1311,7 +1311,7 @@
     }
 
     <span class="doccomment">/// Stops subscribing to a specific audio/video stream in this session.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsubscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">subscriber</span>: <span class="kw-2">&amp;</span><span class="ident">Subscriber</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unsubscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">subscriber</span>: <span class="kw-2">&amp;</span><span class="ident">Subscriber</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -1483,7 +1483,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">connection_state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection_state</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>();
-        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ConnectionState::Connected</span> {
+        <span class="kw">if</span> <span class="ident">connection_state</span> <span class="op">==</span> <span class="ident">ConnectionState::Connected</span> {
             <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>();
             <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">disconnect_watcher</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">sender</span>);
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">disconnect</span>().<span class="ident">is_ok</span>() {

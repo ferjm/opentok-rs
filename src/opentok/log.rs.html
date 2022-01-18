@@ -122,35 +122,35 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ffi::otc_log_level</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LogLevel</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ffi::otc_log_level</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">ffi::otc_log_level</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Disabled</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_FATAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Fatal</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ERROR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Error</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_WARN</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Warn</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_INFO</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Info</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DEBUG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Debug</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_MSG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Message</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_TRACE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::Trace</span>,
-            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ALL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::All</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::__Unknown</span>(<span class="ident">value</span>),
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span> =&gt; <span class="ident"><span class="self">Self</span>::Disabled</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_FATAL</span> =&gt; <span class="ident"><span class="self">Self</span>::Fatal</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ERROR</span> =&gt; <span class="ident"><span class="self">Self</span>::Error</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_WARN</span> =&gt; <span class="ident"><span class="self">Self</span>::Warn</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_INFO</span> =&gt; <span class="ident"><span class="self">Self</span>::Info</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DEBUG</span> =&gt; <span class="ident"><span class="self">Self</span>::Debug</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_MSG</span> =&gt; <span class="ident"><span class="self">Self</span>::Message</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_TRACE</span> =&gt; <span class="ident"><span class="self">Self</span>::Trace</span>,
+            <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ALL</span> =&gt; <span class="ident"><span class="self">Self</span>::All</span>,
+            <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::__Unknown</span>(<span class="ident">value</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LogLevel</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ffi::otc_log_level</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">LogLevel</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">LogLevel</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">LogLevel::Disabled</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span>,
-            <span class="ident">LogLevel::Fatal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_FATAL</span>,
-            <span class="ident">LogLevel::Error</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ERROR</span>,
-            <span class="ident">LogLevel::Warn</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_WARN</span>,
-            <span class="ident">LogLevel::Info</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_INFO</span>,
-            <span class="ident">LogLevel::Debug</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DEBUG</span>,
-            <span class="ident">LogLevel::Message</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_MSG</span>,
-            <span class="ident">LogLevel::Trace</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_TRACE</span>,
-            <span class="ident">LogLevel::All</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ALL</span>,
-            <span class="ident">LogLevel::__Unknown</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span>,
+            <span class="ident">LogLevel::Disabled</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span>,
+            <span class="ident">LogLevel::Fatal</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_FATAL</span>,
+            <span class="ident">LogLevel::Error</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ERROR</span>,
+            <span class="ident">LogLevel::Warn</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_WARN</span>,
+            <span class="ident">LogLevel::Info</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_INFO</span>,
+            <span class="ident">LogLevel::Debug</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DEBUG</span>,
+            <span class="ident">LogLevel::Message</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_MSG</span>,
+            <span class="ident">LogLevel::Trace</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_TRACE</span>,
+            <span class="ident">LogLevel::All</span> =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_ALL</span>,
+            <span class="ident">LogLevel::__Unknown</span>(<span class="kw">_</span>) =&gt; <span class="ident">ffi::otc_log_level_OTC_LOG_LEVEL_DISABLED</span>,
         }
     }
 }

@@ -190,7 +190,7 @@
         <span class="ident">credentials</span>: <span class="ident">Credentials</span>,
         <span class="ident">on_stream_created</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Callback</span><span class="op">&gt;</span>,
         <span class="ident">duration</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">credentials</span>,
             <span class="ident">main_loop</span>: <span class="ident">glib::MainLoop::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>),
@@ -199,7 +199,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">anyhow::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">audio_capture_thread_running</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">AtomicBool::new</span>(<span class="bool-val">true</span>));
         <span class="kw">let</span> <span class="ident">audio_capture_thread_running_</span> <span class="op">=</span> <span class="ident">audio_capture_thread_running</span>.<span class="ident">clone</span>();
 

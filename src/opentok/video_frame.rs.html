@@ -323,47 +323,47 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ffi::otc_video_frame_format</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FrameFormat</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">ffi::otc_video_frame_format</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FrameFormat</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">ffi::otc_video_frame_format</span>) -&gt; <span class="ident">FrameFormat</span> {
         <span class="kw">match</span> <span class="ident">type_</span> {
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ABGR32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Abgr32</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ARGB32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Argb32</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_BGRA32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Bgra32</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_COMPRESSED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ABGR32</span> =&gt; <span class="ident">FrameFormat::Abgr32</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ARGB32</span> =&gt; <span class="ident">FrameFormat::Argb32</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_BGRA32</span> =&gt; <span class="ident">FrameFormat::Bgra32</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_COMPRESSED</span> =&gt; {
                 <span class="ident">FrameFormat::Compressed</span>
             }
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MAX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Max</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MJPEG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Mjpeg</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Nv12</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV21</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Nv21</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGBA32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Rgba32</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGB24</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Rgb24</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UYVY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Uyvy</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUV420P</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Yuv420P</span>,
-            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUY2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::Yuy2</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FrameFormat::__Unknown</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MAX</span> =&gt; <span class="ident">FrameFormat::Max</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MJPEG</span> =&gt; <span class="ident">FrameFormat::Mjpeg</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV12</span> =&gt; <span class="ident">FrameFormat::Nv12</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV21</span> =&gt; <span class="ident">FrameFormat::Nv21</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGBA32</span> =&gt; <span class="ident">FrameFormat::Rgba32</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGB24</span> =&gt; <span class="ident">FrameFormat::Rgb24</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UYVY</span> =&gt; <span class="ident">FrameFormat::Uyvy</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUV420P</span> =&gt; <span class="ident">FrameFormat::Yuv420P</span>,
+            <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUY2</span> =&gt; <span class="ident">FrameFormat::Yuy2</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">FrameFormat::__Unknown</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FrameFormat</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ffi::otc_video_frame_format</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">FrameFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident">FrameFormat</span>) -&gt; <span class="ident">ffi::otc_video_frame_format</span> {
         <span class="kw">match</span> <span class="ident">type_</span> {
-            <span class="ident">FrameFormat::Abgr32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ABGR32</span>,
-            <span class="ident">FrameFormat::Argb32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ARGB32</span>,
-            <span class="ident">FrameFormat::Bgra32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_BGRA32</span>,
-            <span class="ident">FrameFormat::Compressed</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FrameFormat::Abgr32</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ABGR32</span>,
+            <span class="ident">FrameFormat::Argb32</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_ARGB32</span>,
+            <span class="ident">FrameFormat::Bgra32</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_BGRA32</span>,
+            <span class="ident">FrameFormat::Compressed</span> =&gt; {
                 <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_COMPRESSED</span>
             }
-            <span class="ident">FrameFormat::Max</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MAX</span>,
-            <span class="ident">FrameFormat::Mjpeg</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MJPEG</span>,
-            <span class="ident">FrameFormat::Nv12</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV12</span>,
-            <span class="ident">FrameFormat::Nv21</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV21</span>,
-            <span class="ident">FrameFormat::Rgba32</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGBA32</span>,
-            <span class="ident">FrameFormat::Rgb24</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGB24</span>,
-            <span class="ident">FrameFormat::Uyvy</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UYVY</span>,
-            <span class="ident">FrameFormat::Yuv420P</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUV420P</span>,
-            <span class="ident">FrameFormat::Yuy2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUY2</span>,
-            <span class="ident">FrameFormat::__Unknown</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UNKNOWN</span>,
+            <span class="ident">FrameFormat::Max</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MAX</span>,
+            <span class="ident">FrameFormat::Mjpeg</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_MJPEG</span>,
+            <span class="ident">FrameFormat::Nv12</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV12</span>,
+            <span class="ident">FrameFormat::Nv21</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_NV21</span>,
+            <span class="ident">FrameFormat::Rgba32</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGBA32</span>,
+            <span class="ident">FrameFormat::Rgb24</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_RGB24</span>,
+            <span class="ident">FrameFormat::Uyvy</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UYVY</span>,
+            <span class="ident">FrameFormat::Yuv420P</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUV420P</span>,
+            <span class="ident">FrameFormat::Yuy2</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_YUY2</span>,
+            <span class="ident">FrameFormat::__Unknown</span> =&gt; <span class="ident">ffi::otc_video_frame_format_OTC_VIDEO_FRAME_FORMAT_UNKNOWN</span>,
         }
     }
 }
@@ -380,37 +380,37 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ffi::otc_video_frame_plane</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FramePlane</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">plane</span>: <span class="ident">ffi::otc_video_frame_plane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FramePlane</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">plane</span>: <span class="ident">ffi::otc_video_frame_plane</span>) -&gt; <span class="ident">FramePlane</span> {
         <span class="kw">match</span> <span class="ident">plane</span> {
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FramePlane::Packed</span>,
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FramePlane::U</span>,
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_UV_INTERLEAVED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED</span> =&gt; <span class="ident">FramePlane::Packed</span>,
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U</span> =&gt; <span class="ident">FramePlane::U</span>,
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_UV_INTERLEAVED</span> =&gt; {
                 <span class="ident">FramePlane::UvInterleaved</span>
             }
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_V</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FramePlane::V</span>,
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_VU_INTERLEAVED</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_V</span> =&gt; <span class="ident">FramePlane::V</span>,
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_VU_INTERLEAVED</span> =&gt; {
                 <span class="ident">FramePlane::VuInterleaved</span>
             }
-            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_Y</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FramePlane::Y</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FramePlane::__Unknown</span>,
+            <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_Y</span> =&gt; <span class="ident">FramePlane::Y</span>,
+            <span class="kw">_</span> =&gt; <span class="ident">FramePlane::__Unknown</span>,
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FramePlane</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ffi::otc_video_frame_plane</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">plane</span>: <span class="ident">FramePlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_plane</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">plane</span>: <span class="ident">FramePlane</span>) -&gt; <span class="ident">ffi::otc_video_frame_plane</span> {
         <span class="kw">match</span> <span class="ident">plane</span> {
-            <span class="ident">FramePlane::Packed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED</span>,
-            <span class="ident">FramePlane::U</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U</span>,
-            <span class="ident">FramePlane::UvInterleaved</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FramePlane::Packed</span> =&gt; <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_PACKED</span>,
+            <span class="ident">FramePlane::U</span> =&gt; <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_U</span>,
+            <span class="ident">FramePlane::UvInterleaved</span> =&gt; {
                 <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_UV_INTERLEAVED</span>
             }
-            <span class="ident">FramePlane::V</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_V</span>,
-            <span class="ident">FramePlane::VuInterleaved</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">FramePlane::V</span> =&gt; <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_V</span>,
+            <span class="ident">FramePlane::VuInterleaved</span> =&gt; {
                 <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_VU_INTERLEAVED</span>
             }
-            <span class="ident">FramePlane::Y</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_Y</span>,
-            <span class="ident">FramePlane::__Unknown</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32::MAX</span>,
+            <span class="ident">FramePlane::Y</span> =&gt; <span class="ident">ffi::otc_video_frame_plane_OTC_VIDEO_FRAME_PLANE_Y</span>,
+            <span class="ident">FramePlane::__Unknown</span> =&gt; <span class="ident">u32::MAX</span>,
         }
     }
 }
@@ -420,11 +420,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">VideoFrame</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span> {
         <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">format</span>: <span class="ident">FrameFormat</span>, <span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">format</span>: <span class="ident">FrameFormat</span>, <span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="ident">AtomicPtr::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">ffi::otc_video_frame_new</span>(<span class="ident">format</span>.<span class="ident">into</span>(), <span class="ident">width</span>, <span class="ident">height</span>, <span class="ident">buffer</span>.<span class="ident">as_ptr</span>()) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>
@@ -432,7 +432,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_mjpeg</span>(<span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_mjpeg</span>(<span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="ident">AtomicPtr::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">ffi::otc_video_frame_new_MJPEG</span>(
@@ -445,7 +445,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_compressed</span>(<span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_compressed</span>(<span class="ident">width</span>: <span class="ident">i32</span>, <span class="ident">height</span>: <span class="ident">i32</span>, <span class="ident">buffer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="ident">AtomicPtr::new</span>(<span class="kw">unsafe</span> {
                 <span class="ident">ffi::otc_video_frame_new_compressed</span>(
@@ -460,7 +460,7 @@
 
     <span class="comment">// FIXME: implement more constructors as needed.</span>
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -470,7 +470,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts</span>(<span class="ident">data</span>, <span class="ident">size</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;u64 to usize cast&quot;</span>)) })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_timestamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_timestamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i64</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -478,7 +478,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_get_timestamp</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_timestamp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timestamp</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_timestamp</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timestamp</span>: <span class="ident">i64</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -489,7 +489,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -497,7 +497,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_get_width</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -505,7 +505,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_get_height</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_number_of_planes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_number_of_planes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -517,7 +517,7 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FrameFormat</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FrameFormat</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -525,7 +525,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_get_format</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) }.<span class="ident">into</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_format</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <span class="ident">FrameFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_format</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <span class="ident">FrameFormat</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -536,7 +536,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <span class="ident">FrameFormat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">VideoFrame</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">convert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">format</span>: <span class="ident">FrameFormat</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">VideoFrame</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -548,7 +548,7 @@
         )
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_plane_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="ident">FramePlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_plane_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="ident">FramePlane</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -556,7 +556,7 @@
         <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_get_plane_size</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>, <span class="ident">plane</span>.<span class="ident">into</span>()) <span class="kw">as</span> <span class="ident">usize</span> })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_plane_stride</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="ident">FramePlane</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_plane_stride</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">plane</span>: <span class="ident">FramePlane</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span>, <span class="ident">OtcError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OtcError::NullError</span>);
@@ -566,7 +566,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">VideoFrame</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
         (<span class="self">self</span>.<span class="ident">ptr</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span>).<span class="ident">into</span>()
     }
 }
@@ -589,7 +589,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VideoFrame</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::not_unsafe_ptr_arg_deref</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_video_frame</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::otc_video_frame_copy</span>(<span class="ident">ptr</span>) };
         <span class="self">Self</span> {
             <span class="ident">ptr</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>),

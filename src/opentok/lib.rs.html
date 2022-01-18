@@ -67,13 +67,13 @@
 
 <span class="doccomment">/// Initializes the library. You must call this function before</span>
 <span class="doccomment">/// the execution of any other code using the library.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() -&gt; <span class="ident">OtcResult</span> {
     <span class="kw">unsafe</span> { <span class="ident">ffi::otc_init</span>(<span class="ident">ptr::null_mut</span>()) }.<span class="ident">into_result</span>()
 }
 
 <span class="doccomment">/// Destroys the library engine. You should call this function when you are done</span>
 <span class="doccomment">/// executing code that uses the library.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deinit</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deinit</span>() -&gt; <span class="ident">OtcResult</span> {
     <span class="ident">audio_device::AudioDevice::stop</span>();
     <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">publisher</span>) <span class="kw">in</span> <span class="ident">publisher::INSTANCES</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">drain</span>() {
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">publisher</span>.<span class="ident">unpublish</span>();

@@ -164,13 +164,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CapturerBuffer</span>(<span class="ident">gst::buffer::MappedBuffer</span><span class="op">&lt;</span><span class="ident">gst::buffer::Readable</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CapturerBuffer</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">as_slice_of</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">i16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CapturerBuffer</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">i16</span>] {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">i16</span>] {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">as_slice_of</span>::<span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()
     }
 }
@@ -181,7 +181,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Capturer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">VideoCapturerSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">VideoCapturerSettings</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">gst::init</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">format</span> <span class="op">=</span> <span class="ident">gst_from_otc_format</span>(<span class="ident">settings</span>.<span class="ident">format</span>);
@@ -200,7 +200,7 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;videotestsrc&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">capsfilter</span> <span class="op">=</span> <span class="ident">gst::ElementFactory::make</span>(<span class="string">&quot;capsfilter&quot;</span>, <span class="prelude-val">None</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;capsfilter&quot;</span>))<span class="question-mark">?</span>;
-        <span class="ident">capsfilter</span>.<span class="ident">set_property</span>(<span class="string">&quot;caps&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>).<span class="ident">unwrap</span>();
+        <span class="ident">capsfilter</span>.<span class="ident">set_property</span>(<span class="string">&quot;caps&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>);
         <span class="kw">let</span> <span class="ident">sink</span> <span class="op">=</span>
             <span class="ident">gst::ElementFactory::make</span>(<span class="string">&quot;appsink&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;appsink&quot;</span>))<span class="question-mark">?</span>;
 
@@ -219,7 +219,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">pipeline</span>, <span class="ident">sink</span> })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pull_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pull_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">appsink</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sink</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">gst_app::AppSink</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">sample</span> <span class="op">=</span> <span class="ident">appsink</span>.<span class="ident">pull_sample</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">sample</span>.<span class="ident">buffer_owned</span>().<span class="ident">unwrap</span>();
@@ -241,7 +241,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">AudioCapturer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">AudioDeviceSettings</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">AudioDeviceSettings</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="ident">gst::init</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">caps</span> <span class="op">=</span> <span class="ident">gst::Caps::new_simple</span>(
@@ -259,12 +259,12 @@
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;audiotestsrc&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">capsfilter</span> <span class="op">=</span> <span class="ident">gst::ElementFactory::make</span>(<span class="string">&quot;capsfilter&quot;</span>, <span class="prelude-val">None</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;capsfilter&quot;</span>))<span class="question-mark">?</span>;
-        <span class="ident">capsfilter</span>.<span class="ident">set_property</span>(<span class="string">&quot;caps&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>).<span class="ident">unwrap</span>();
+        <span class="ident">capsfilter</span>.<span class="ident">set_property</span>(<span class="string">&quot;caps&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">caps</span>);
         <span class="kw">let</span> <span class="ident">sink</span> <span class="op">=</span>
             <span class="ident">gst::ElementFactory::make</span>(<span class="string">&quot;appsink&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">MissingElement</span>(<span class="string">&quot;appsink&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">samples_per_buffer</span> <span class="op">=</span> (<span class="ident">settings</span>.<span class="ident">sampling_rate</span> <span class="op">/</span> <span class="number">100</span>) <span class="op">*</span> <span class="ident">settings</span>.<span class="ident">number_of_channels</span>;
-        <span class="ident">src</span>.<span class="ident">set_property</span>(<span class="string">&quot;samplesperbuffer&quot;</span>, <span class="ident">samples_per_buffer</span>)<span class="question-mark">?</span>;
+        <span class="ident">src</span>.<span class="ident">set_property</span>(<span class="string">&quot;samplesperbuffer&quot;</span>, <span class="ident">samples_per_buffer</span>);
         <span class="ident">pipeline</span>.<span class="ident">add_many</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">capsfilter</span>, <span class="kw-2">&amp;</span><span class="ident">sink</span>])<span class="question-mark">?</span>;
         <span class="ident">gst::Element::link_many</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">src</span>, <span class="kw-2">&amp;</span><span class="ident">capsfilter</span>, <span class="kw-2">&amp;</span><span class="ident">sink</span>])<span class="question-mark">?</span>;
 
@@ -284,7 +284,7 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pull_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioSampleData</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pull_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AudioSampleData</span><span class="op">&gt;</span> {
         <span class="comment">// NOTE: Ideally we should use size here, with an adapter. For testing</span>
         <span class="comment">// purpose it was simpler to set the samplesperbuffer property to match</span>
         <span class="comment">// our settings.</span>

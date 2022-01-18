@@ -52,14 +52,16 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">load_yaml</span>, <span class="ident">App</span>};
+<span id="55">55</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">load_yaml</span>, <span class="ident">App</span>};
 <span class="kw">use</span> <span class="ident">opentok_utils::common::Credentials</span>;
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 <span class="kw">use</span> <span class="ident">url::Url</span>;
 
-<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">parse_cli</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Credentials</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>), <span class="ident">anyhow::Error</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">parse_cli</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Credentials</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>), <span class="ident">anyhow::Error</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">yaml</span> <span class="op">=</span> <span class="macro">load_yaml!</span>(<span class="string">&quot;cli.yaml&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App::from</span>(<span class="ident">yaml</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App::from_yaml</span>(<span class="ident">yaml</span>);
     <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">clone</span>().<span class="ident">get_matches</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">credentials</span> <span class="op">=</span> <span class="ident">Credentials::default</span>();

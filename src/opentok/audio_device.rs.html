@@ -297,7 +297,7 @@
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>,
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_audio_device_settings</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_bool</span> {
+) -&gt; <span class="ident">ffi::otc_bool</span> {
     <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="bool-val">false</span>.<span class="ident">into</span>();
     }
@@ -316,7 +316,7 @@
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ffi::otc_audio_device</span>,
     <span class="kw">_</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
     <span class="ident">settings</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ffi::otc_audio_device_settings</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ffi::otc_bool</span> {
+) -&gt; <span class="ident">ffi::otc_bool</span> {
     <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="bool-val">false</span>.<span class="ident">into</span>();
     }
@@ -351,7 +351,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AudioDeviceSettings</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">AudioDeviceSettings</span> {
         <span class="ident">AudioDeviceSettings</span> {
             <span class="ident">sampling_rate</span>: <span class="number">44100</span>,
             <span class="ident">number_of_channels</span>: <span class="number">1</span>,
@@ -375,7 +375,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">AudioDevice</span> {}
 
 <span class="kw">impl</span> <span class="ident">AudioDevice</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">device</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">capturer_ready</span>: <span class="ident">Default::default</span>(),
             <span class="ident">capture_settings</span>: <span class="ident">Default::default</span>(),
@@ -419,7 +419,7 @@
         <span class="ident">device</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_instance</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_instance</span>() -&gt; <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">AudioDevice</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">SINGLETON</span>.<span class="ident">clone</span>()
     }
 
@@ -435,11 +435,11 @@
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">settings</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
+    <span class="kw">fn</span> <span class="ident">capture_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AudioDeviceSettings</span> {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">capture_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">render_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">AudioDeviceSettings</span> {
+    <span class="kw">fn</span> <span class="ident">render_settings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AudioDeviceSettings</span> {
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>()
     }
 
@@ -459,17 +459,17 @@
         <span class="kw">unsafe</span> { <span class="ident">ffi::otc_audio_device_write_capture_data</span>(<span class="ident">data</span>.<span class="number">0</span>.<span class="ident">as_ptr</span>(), <span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>) };
     }
 
-    <span class="kw">fn</span> <span class="ident">start_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">start_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="self">self</span>.<span class="ident">capturer_ready</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">stop_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">stop_capturer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="self">self</span>.<span class="ident">capturer_ready</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">start_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">start_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="kw">let</span> <span class="ident">render_thread_running</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">sampling_rate</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">render_settings</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">sampling_rate</span>;
@@ -503,7 +503,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">stop_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">OtcResult</span> {
+    <span class="kw">fn</span> <span class="ident">stop_renderer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OtcResult</span> {
         <span class="self">self</span>.<span class="ident">render_thread_running</span>.<span class="ident">store</span>(<span class="bool-val">false</span>, <span class="ident">Ordering::Relaxed</span>);
         <span class="prelude-val">Ok</span>(())
     }
