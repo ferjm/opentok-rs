@@ -21,14 +21,11 @@ async fn main() -> anyhow::Result<()> {
         .on_stream_created(move |_, stream| {
             println!("on_stream_created {}", stream.id());
             println!(
-                "opentok url {}",
-                format!(
-                    "opentok://{}/{}?key={}&token={}",
-                    credentials_.session_id,
-                    stream.id(),
-                    credentials_.api_key,
-                    credentials_.token
-                )
+                "opentok url opentok://{}/{}?key={}&token={}",
+                credentials_.session_id,
+                stream.id(),
+                credentials_.api_key,
+                credentials_.token
             );
         })
         .on_error(|_, error, _| {

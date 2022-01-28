@@ -99,14 +99,11 @@ impl Publisher {
             .on_stream_created(move |_, stream| {
                 println!("Publishing stream with ID {}", stream.id());
                 println!(
-                    "opentok url {}",
-                    format!(
-                        "opentok://{}/{}?key={}&token={}",
-                        this.credentials.session_id,
-                        stream.id(),
-                        this.credentials.api_key,
-                        this.credentials.token
-                    )
+                    "opentok url opentok://{}/{}?key={}&token={}",
+                    this.credentials.session_id,
+                    stream.id(),
+                    this.credentials.api_key,
+                    this.credentials.token
                 );
 
                 if let Some(ref callback) = *on_stream_created.lock().unwrap() {
