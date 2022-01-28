@@ -19,12 +19,18 @@ pub mod video_frame;
 
 pub use crate::enums::{IntoResult, OtcError, OtcResult};
 
-use std::ptr;
+use std::{ptr, sync::atomic::AtomicBool, sync::atomic::Ordering};
+
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 /// Initializes the library. You must call this function before
 /// the execution of any other code using the library.
 pub fn init() -> OtcResult {
-    unsafe { ffi::otc_init(ptr::null_mut()) }.into_result()
+    unsafe { ffi::otc_init(ptr::null_mut()) }
+        .into_result()
+        .map(move |_| {
+            INITIALIZED.store(true, Ordering::Relaxed);
+        })
 }
 
 /// Destroys the library engine. You should call this function when you are done
@@ -41,4 +47,9 @@ pub fn deinit() -> OtcResult {
         let _ = session.disconnect();
     }
     unsafe { ffi::otc_destroy() }.into_result()
+}
+
+/// Check if the underlying OpenTok library was successfully initialized or not.
+pub fn is_initialized() -> bool {
+    INITIALIZED.load(Ordering::Relaxed)
 }
