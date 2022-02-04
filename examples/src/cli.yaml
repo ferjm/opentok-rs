@@ -1,6 +1,6 @@
 name: gst-opentok-examples
 version: "0.1.0"
-help: gst-opentok examples
+about: gst-opentok examples
 args:
   - api_key:
       short: k

@@ -433,6 +433,16 @@ dependencies = [
  "strsim 0.10.0",
  "termcolor",
  "textwrap 0.14.2",
+]
+
+[[package]]
+name = "clap-serde"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33caced247f04bebb92988d8db1140726876f405921af4f1a8d67f8c99979e18"
+dependencies = [
+ "clap 3.0.14",
+ "serde",
  "yaml-rust",
 ]
 
@@ -633,6 +643,7 @@ dependencies = [
  "async-std",
  "byte-slice-cast",
  "clap 3.0.14",
+ "clap-serde",
  "derive_more",
  "glib",
  "json",
@@ -640,6 +651,7 @@ dependencies = [
  "opentok-utils",
  "surf",
  "url",
+ "yaml-rust",
 ]
 
 [[package]]
