@@ -2,7 +2,7 @@
 name = "examples"
 version = "1.0.0"
 authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 anyhow = "1.0.40"
