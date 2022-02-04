@@ -4,12 +4,9 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    if let Ok(sdk_dir) = env::var("OPENTOK_PATH") {
-        let root_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-        println!(
-            "cargo:rustc-link-search=native={}/../{}/lib",
-            root_dir, sdk_dir
-        );
+    if let Ok(lib_dir) = env::var("OPENTOK_LIB_DIR") {
+        println!("cargo:rustc-link-search=native={}", lib_dir);
+        println!("cargo:rustc-env=LD_LIBRARY_PATH={}", lib_dir);
     }
 
     println!("cargo:rustc-link-lib=opentok");
