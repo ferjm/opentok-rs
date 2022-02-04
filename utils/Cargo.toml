@@ -1,7 +1,7 @@
 [package]
 name = "opentok-utils"
 version = "1.0.1"
-edition = "2018"
+edition = "2021"
 description = "Test utilities for the OpenTok SDK Rust bindings"
 authors = ["Fernando Jiménez Moreno <ferjmoreno@gmail.com>"]
 repository = "https://github.com/ferjm/opentok-rs"
