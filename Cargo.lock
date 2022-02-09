@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "opentok"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "anyhow",
  "cargo-husky",
@@ -1460,7 +1460,7 @@ dependencies = [
 
 [[package]]
 name = "opentok-rs-sys"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "bindgen",
 ]
