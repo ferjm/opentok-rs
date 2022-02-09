@@ -7,8 +7,8 @@ links = "opentok"
 build = "build.rs"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/ferjm/opentok-rs"
-documentation = "https://ferjm.github.io/opentok-rs/opentok_rs_sys/"
+repository = "https://github.com/opentok-rust/opentok-rs"
+documentation = "https://opentok-rust.github.io/opentok-rs/opentok_rs_sys/"
 keywords = ["opentok", "tokbox", "vonage", "webrtc", "multimedia"]
 categories = ["multimedia", "api-bindings"]
 

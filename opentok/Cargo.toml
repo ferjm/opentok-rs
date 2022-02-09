@@ -5,8 +5,8 @@ description = "Rust bindings for OpenTok SDK"
 authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com"]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/ferjm/opentok-rs"
-documentation = "https://ferjm.github.io/opentok-rs/opentok/"
+repository = "https://github.com/opentok-rust/opentok-rs"
+documentation = "https://opentok-rust.github.io/opentok-rs/opentok/"
 keywords = ["opentok", "tokbox", "vonage", "webrtc", "multimedia"]
 categories = ["multimedia", "external-ffi-bindings"]
 readme = "../README.md"
@@ -21,7 +21,7 @@ anyhow = "1"
 
 [dev-dependencies]
 futures = "0.3.17"
-opentok-server = { git = "https://github.com/ferjm/opentok-server-rs", branch = "main" }
+opentok-server = { git = "https://github.com/opentok-rust/opentok-server-rs", branch = "main" }
 opentok-utils = { path = "../utils" }
 
 [dev-dependencies.cargo-husky]

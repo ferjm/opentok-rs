@@ -3,9 +3,9 @@ name = "opentok-utils"
 version = "1.0.1"
 edition = "2021"
 description = "Test utilities for the OpenTok SDK Rust bindings"
-authors = ["Fernando Jiménez Moreno <ferjmoreno@gmail.com>"]
-repository = "https://github.com/ferjm/opentok-rs"
-documentation = "https://ferjm.github.io/opentok-rs/opentok_utils/"
+authors = ["Fernando Jiménez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com>"]
+repository = "https://github.com/opentok-rust/opentok-rs"
+documentation = "https://opentok-rust.github.io/opentok-rs/opentok_utils/"
 license = "MIT"
 
 [dependencies]

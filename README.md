@@ -1,11 +1,11 @@
 # Rust bindings for OpenTok SDK
-[![Rust](https://github.com/ferjm/opentok-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/ferjm/opentok-rs/actions/workflows/rust.yml)
+[![Rust](https://github.com/opentok-rust/opentok-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/opentok-rust/opentok-rs/actions/workflows/rust.yml)
 
 [OpenTok SDK](https://tokbox.com/developer/sdks/linux/) bindings for Rust.
 
 These bindings are providing a safe API that can be used to interface with OpenTok.
 
-[Documentation](https://ferjm.github.io/opentok-rs/opentok)
+[Documentation](https://opentok-rust.github.io/opentok-rs/opentok)
 
 ## Setting up your environment
 To build the OpenTok bindings or anything depending on them, you need to have

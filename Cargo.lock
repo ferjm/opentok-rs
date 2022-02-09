@@ -1468,7 +1468,7 @@ dependencies = [
 [[package]]
 name = "opentok-server"
 version = "0.1.0"
-source = "git+https://github.com/ferjm/opentok-server-rs?branch=main#31c2d6bece91922787c25ce740ae54f6338bdfd4"
+source = "git+https://github.com/opentok-rust/opentok-server-rs?branch=main#31c2d6bece91922787c25ce740ae54f6338bdfd4"
 dependencies = [
  "base64 0.13.0",
  "futures",
