@@ -1,8 +1,8 @@
 extern crate opentok;
 
 use opentok::log::{self, LogLevel};
-use opentok_utils::publisher::Publisher;
-use opentok_utils::subscriber::Subscriber;
+use opentok::utils::publisher::Publisher;
+use opentok::utils::subscriber::Subscriber;
 
 #[path = "../cli.rs"]
 mod cli;

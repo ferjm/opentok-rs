@@ -1,10 +1,10 @@
-use crate::common::{gst_from_otc_format, MissingElement};
+use crate::utils::common::{gst_from_otc_format, MissingElement};
 
+use crate::audio_device::AudioSample;
+use crate::video_frame::FrameFormat;
 use anyhow::Error;
 use byte_slice_cast::*;
 use gst::prelude::*;
-use opentok::audio_device::AudioSample;
-use opentok::video_frame::FrameFormat;
 
 pub struct Renderer {
     pipeline: gst::Pipeline,

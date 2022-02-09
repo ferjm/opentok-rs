@@ -1,11 +1,11 @@
-use crate::capturer;
-use crate::common::Credentials;
+use crate::utils::capturer;
+use crate::utils::common::Credentials;
 
-use opentok::audio_device::{AudioDevice, AudioDeviceSettings};
-use opentok::publisher::{Publisher as OpenTokPublisher, PublisherCallbacks};
-use opentok::session::{Session, SessionCallbacks};
-use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
-use opentok::video_frame::VideoFrame;
+use crate::audio_device::{AudioDevice, AudioDeviceSettings};
+use crate::publisher::{Publisher as OpenTokPublisher, PublisherCallbacks};
+use crate::session::{Session, SessionCallbacks};
+use crate::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
+use crate::video_frame::VideoFrame;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;

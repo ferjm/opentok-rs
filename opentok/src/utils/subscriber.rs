@@ -1,10 +1,10 @@
-use crate::common::Credentials;
-use crate::renderer;
+use crate::utils::common::Credentials;
+use crate::utils::renderer;
 
-use opentok::audio_device::AudioDevice;
-use opentok::session::{Session, SessionCallbacks};
-use opentok::subscriber::{Subscriber as OpenTokSubscriber, SubscriberCallbacks};
-use opentok::video_frame::FramePlane;
+use crate::audio_device::AudioDevice;
+use crate::session::{Session, SessionCallbacks};
+use crate::subscriber::{Subscriber as OpenTokSubscriber, SubscriberCallbacks};
+use crate::video_frame::FramePlane;
 use std::sync::{Arc, Mutex};
 
 pub struct Subscriber {

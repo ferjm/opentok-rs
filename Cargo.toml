@@ -2,7 +2,6 @@
 members = [
     "examples",
     "opentok",
-    "utils"
 ]
 
 exclude = ["opentok-sys"]

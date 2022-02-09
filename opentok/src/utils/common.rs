@@ -1,6 +1,6 @@
+use crate::video_frame::FrameFormat;
 use derive_more::{Display, Error};
 use gst_video::VideoFormat;
-use opentok::video_frame::FrameFormat;
 
 #[derive(Debug, Display, Error)]
 pub struct MissingElement(#[error(not(source))] pub &'static str);

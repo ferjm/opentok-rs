@@ -648,7 +648,6 @@ dependencies = [
  "glib",
  "json",
  "opentok",
- "opentok-utils",
  "surf",
  "url",
  "yaml-rust",
@@ -1447,14 +1446,19 @@ name = "opentok"
 version = "1.0.2"
 dependencies = [
  "anyhow",
+ "byte-slice-cast",
  "cargo-husky",
+ "derive_more",
  "futures",
+ "glib",
+ "gstreamer",
+ "gstreamer-app",
+ "gstreamer-video",
  "lazy_static",
  "log",
  "once_cell",
  "opentok-rs-sys",
  "opentok-server",
- "opentok-utils",
  "thiserror",
 ]
 
@@ -1480,20 +1484,6 @@ dependencies = [
  "serde_json",
  "surf",
  "thiserror",
-]
-
-[[package]]
-name = "opentok-utils"
-version = "1.0.1"
-dependencies = [
- "anyhow",
- "byte-slice-cast",
- "derive_more",
- "glib",
- "gstreamer",
- "gstreamer-app",
- "gstreamer-video",
- "opentok",
 ]
 
 [[package]]

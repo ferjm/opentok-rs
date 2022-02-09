@@ -1,4 +1,4 @@
-use opentok_utils::common::Credentials;
+use opentok::utils::common::Credentials;
 use std::collections::HashMap;
 use url::Url;
 

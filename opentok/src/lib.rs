@@ -21,6 +21,9 @@ pub use crate::enums::{IntoResult, OtcError, OtcResult};
 
 use std::{ptr, sync::atomic::AtomicBool, sync::atomic::Ordering};
 
+#[cfg(feature = "gstreamer-utils")]
+pub mod utils;
+
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 /// Initializes the library. You must call this function before

@@ -18,11 +18,20 @@ log = "0.4.14"
 once_cell = "1.8.0"
 thiserror = "1.0.24"
 anyhow = "1"
+byte-slice-cast = { version = "1.0.0", optional = true }
+derive_more = { version = "0.99.14", optional = true }
+glib = { version = "0.15", optional = true }
+gst = { package = "gstreamer", version = "0.18", optional = true }
+gst_app = { package = "gstreamer-app", version = "0.18", optional = true }
+gst_video = { package = "gstreamer-video", version = "0.18", optional = true }
+
+[features]
+default = []
+gstreamer-utils = ["byte-slice-cast", "derive_more", "glib", "gst", "gst_app", "gst_video"]
 
 [dev-dependencies]
 futures = "0.3.17"
 opentok-server = { git = "https://github.com/opentok-rust/opentok-server-rs", branch = "main" }
-opentok-utils = { path = "../utils" }
 
 [dev-dependencies.cargo-husky]
 version = "1.5.0"

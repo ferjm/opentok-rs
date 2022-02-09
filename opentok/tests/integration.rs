@@ -6,12 +6,12 @@ mod tests {
     use opentok::publisher::{Publisher, PublisherCallbacks};
     use opentok::session::{Session, SessionCallbacks};
     use opentok::subscriber::{Subscriber, SubscriberCallbacks};
+    use opentok::utils::capturer;
+    use opentok::utils::common::Credentials;
+    use opentok::utils::publisher::Publisher as UtilsPublisher;
     use opentok::video_capturer::{VideoCapturer, VideoCapturerCallbacks, VideoCapturerSettings};
     use opentok::video_frame::VideoFrame;
     use opentok_server::{OpenTok, SessionOptions, TokenRole};
-    use opentok_utils::capturer;
-    use opentok_utils::common::Credentials;
-    use opentok_utils::publisher::Publisher as UtilsPublisher;
     use std::env;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::mpsc;
