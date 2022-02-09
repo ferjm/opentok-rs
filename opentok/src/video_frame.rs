@@ -280,11 +280,11 @@ impl Drop for VideoFrame {
             return;
         }
 
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
         unsafe {
             ffi::otc_video_frame_delete(ptr as *mut _);
         }
-
-        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
     }
 }
 

@@ -38,11 +38,11 @@ impl Drop for Connection {
             return;
         }
 
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
         unsafe {
             ffi::otc_connection_delete(ptr as *mut _);
         }
-
-        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
     }
 }
 

@@ -739,6 +739,8 @@ impl Drop for Session {
             }
         }
 
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
+
         unsafe {
             ffi::otc_session_delete(ptr as *mut _);
         }
@@ -746,7 +748,5 @@ impl Drop for Session {
         if let Ok(ref mut instances) = INSTANCES.try_lock() {
             instances.remove(&(ptr as usize));
         }
-
-        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
     }
 }

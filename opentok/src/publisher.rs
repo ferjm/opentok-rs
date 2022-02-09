@@ -355,6 +355,7 @@ impl Drop for Publisher {
 
         let _ = self.unpublish();
 
+        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
         unsafe {
             ffi::otc_publisher_delete(ptr as *mut _);
         }
@@ -362,7 +363,5 @@ impl Drop for Publisher {
         if let Ok(ref mut instances) = INSTANCES.try_lock() {
             instances.remove(&(ptr as usize));
         }
-
-        self.ptr.store(std::ptr::null_mut(), Ordering::Relaxed);
     }
 }
