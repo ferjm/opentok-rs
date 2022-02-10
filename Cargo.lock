@@ -637,7 +637,7 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 
 [[package]]
 name = "examples"
-version = "1.0.0"
+version = "1.0.5"
 dependencies = [
  "anyhow",
  "async-std",
@@ -1443,7 +1443,7 @@ dependencies = [
 
 [[package]]
 name = "opentok"
-version = "1.0.2"
+version = "1.0.5"
 dependencies = [
  "anyhow",
  "byte-slice-cast",
@@ -1464,7 +1464,7 @@ dependencies = [
 
 [[package]]
 name = "opentok-rs-sys"
-version = "1.0.2"
+version = "1.0.5"
 dependencies = [
  "bindgen",
 ]

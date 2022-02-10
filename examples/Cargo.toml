@@ -1,6 +1,6 @@
 [package]
 name = "examples"
-version = "1.0.0"
+version = "1.0.5"
 authors = ["Fernando Jimenez Moreno <fjimenez@igalia.com>"]
 edition = "2021"
 

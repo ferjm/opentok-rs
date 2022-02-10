@@ -1,6 +1,6 @@
 [package]
 name = "opentok-rs-sys"
-version = "1.0.2"
+version = "1.0.5"
 description = "Rust FFI bindings for OpenTok SDK"
 authors = ["Fernando Jimenez Moreno <ferjmoreno@gmail.com>", "Philippe Normand <philn@igalia.com"]
 links = "opentok"
