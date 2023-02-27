@@ -66,12 +66,17 @@ ffi_callback_with_return_user_data!(
     ffi::otc_bool
 );
 
+type VideoCapturerInit = Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>;
+type VideoCapturerDestroy = Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>;
+type VideoCapturerStart = Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>;
+type VideoCapturerStop = Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>;
+
 #[derive(Default)]
 pub struct VideoCapturerCallbacks {
-    init: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    destroy: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    start: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    stop: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    init: VideoCapturerInit,
+    destroy: VideoCapturerDestroy,
+    start: VideoCapturerStart,
+    stop: VideoCapturerStop,
 }
 
 impl VideoCapturerCallbacks {
@@ -87,10 +92,10 @@ impl VideoCapturerCallbacks {
 
 #[derive(Default)]
 pub struct VideoCapturerCallbacksBuilder {
-    init: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    destroy: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    start: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
-    stop: Option<Box<dyn Fn(&VideoCapturer) -> OtcResult + Send + Sync + 'static>>,
+    init: VideoCapturerInit,
+    destroy: VideoCapturerDestroy,
+    start: VideoCapturerStart,
+    stop: VideoCapturerStop,
 }
 
 impl VideoCapturerCallbacksBuilder {

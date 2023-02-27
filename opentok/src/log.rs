@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 /// Log level enumeration.
 ///
 /// This enumeration represents the different log levels supported.
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[repr(u32)]
 pub enum LogLevel {
     /// No messages
