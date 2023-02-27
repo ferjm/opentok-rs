@@ -18,22 +18,22 @@ impl Renderer {
 
         let pipeline = gst::Pipeline::new(None);
         let video_src =
-            gst::ElementFactory::make("appsrc", None).map_err(|_| MissingElement("appsrc"))?;
-        let videoconvert = gst::ElementFactory::make("videoconvert", None)
+            gst::ElementFactory::make("appsrc").build().map_err(|_| MissingElement("appsrc"))?;
+        let videoconvert = gst::ElementFactory::make("videoconvert").build()
             .map_err(|_| MissingElement("videoconvert"))?;
-        let sink = gst::ElementFactory::make("autovideosink", None)
+        let sink = gst::ElementFactory::make("autovideosink").build()
             .map_err(|_| MissingElement("autovideosink"))?;
 
         pipeline.add_many(&[&video_src, &videoconvert, &sink])?;
         gst::Element::link_many(&[&video_src, &videoconvert, &sink])?;
 
         let audio_src =
-            gst::ElementFactory::make("appsrc", None).map_err(|_| MissingElement("appsrc"))?;
-        let audioresample = gst::ElementFactory::make("audioresample", None)
+            gst::ElementFactory::make("appsrc").build().map_err(|_| MissingElement("appsrc"))?;
+        let audioresample = gst::ElementFactory::make("audioresample").build()
             .map_err(|_| MissingElement("audioresample"))?;
-        let audioconvert = gst::ElementFactory::make("audioconvert", None)
+        let audioconvert = gst::ElementFactory::make("audioconvert").build()
             .map_err(|_| MissingElement("audioconvert"))?;
-        let sink = gst::ElementFactory::make("autoaudiosink", None)
+        let sink = gst::ElementFactory::make("autoaudiosink").build()
             .map_err(|_| MissingElement("autoaudiosink"))?;
 
         pipeline.add_many(&[&audio_src, &audioresample, &audioconvert, &sink])?;

@@ -9,6 +9,7 @@ use crate::video_frame::VideoFrame;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use gst::glib;
 
 type Callback = Box<dyn Fn(&Publisher, String) + Send + Sync + 'static>;
 

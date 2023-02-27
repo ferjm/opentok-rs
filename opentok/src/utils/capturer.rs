@@ -30,24 +30,27 @@ impl Capturer {
         gst::init()?;
 
         let format = gst_from_otc_format(settings.format);
-        let caps = gst::Caps::new_simple(
-            "video/x-raw",
-            &[
-                ("format", &format.to_string()),
-                ("width", &settings.width),
-                ("height", &settings.height),
-                ("framerate", &gst::Fraction::new(settings.fps, 1)),
-            ],
-        );
+        let caps = gst::Caps::builder_full()
+            .structure(
+                gst::Structure::builder("video/x-raw")
+                    .field("format", &format.to_string())
+                    .field("width", &settings.width)
+                    .field("height", &settings.height)
+                    .field("framerate", &gst::Fraction::new(settings.fps, 1))
+                    .build(),
+            )
+            .build();
 
         let pipeline = gst::Pipeline::new(None);
-        let src = gst::ElementFactory::make("videotestsrc", None)
+        let src = gst::ElementFactory::make("videotestsrc")
+            .build()
             .map_err(|_| MissingElement("videotestsrc"))?;
-        let capsfilter = gst::ElementFactory::make("capsfilter", None)
+        let capsfilter = gst::ElementFactory::make("capsfilter")
+            .build()
             .map_err(|_| MissingElement("capsfilter"))?;
         capsfilter.set_property("caps", &caps);
         let sink =
-            gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
+            gst::ElementFactory::make("appsink").build().map_err(|_| MissingElement("appsink"))?;
 
         pipeline.add_many(&[&src, &capsfilter, &sink])?;
         gst::Element::link_many(&[&src, &capsfilter, &sink])?;
@@ -89,24 +92,25 @@ impl AudioCapturer {
     pub fn new(settings: &AudioDeviceSettings) -> Result<Self, Error> {
         gst::init()?;
 
-        let caps = gst::Caps::new_simple(
-            "audio/x-raw",
-            &[
-                ("format", &"S16LE"),
-                ("layout", &"interleaved"),
-                ("rate", &settings.sampling_rate),
-                ("channels", &settings.number_of_channels),
-            ],
-        );
+        let caps = gst::Caps::builder_full()
+            .structure(
+                gst::Structure::builder("audio/x-raw")
+                    .field("format", &"S16LE")
+                    .field("layout", &"interleaved")
+                    .field("rate", &settings.sampling_rate)
+                    .field("channels", &settings.number_of_channels)
+                    .build(),
+            )
+            .build();
 
         let pipeline = gst::Pipeline::new(None);
-        let src = gst::ElementFactory::make("audiotestsrc", None)
+        let src = gst::ElementFactory::make("audiotestsrc").build()
             .map_err(|_| MissingElement("audiotestsrc"))?;
-        let capsfilter = gst::ElementFactory::make("capsfilter", None)
+        let capsfilter = gst::ElementFactory::make("capsfilter").build()
             .map_err(|_| MissingElement("capsfilter"))?;
         capsfilter.set_property("caps", &caps);
         let sink =
-            gst::ElementFactory::make("appsink", None).map_err(|_| MissingElement("appsink"))?;
+            gst::ElementFactory::make("appsink").build().map_err(|_| MissingElement("appsink"))?;
 
         let samples_per_buffer = (settings.sampling_rate / 100) * settings.number_of_channels;
         src.set_property("samplesperbuffer", samples_per_buffer);

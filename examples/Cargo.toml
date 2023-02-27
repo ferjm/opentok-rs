@@ -11,7 +11,7 @@ clap = { version = "3.0" }
 clap-serde = { version = "0.3", features = ["yaml"] }
 yaml-rust = "0.4"
 derive_more = "0.99.14"
-glib = "0.15"
+glib = "0.17"
 opentok = { path = "../opentok", features = ["gstreamer-utils"] }
 json = "0.12"
 surf = "2"
